@@ -24,7 +24,7 @@ The existing OpenAI Sites project is the intended production hosting path. It al
 - A safe `/api/health` response with no secret values or database URL.
 - A user-facing error boundary that does not print SQL, provider, token, or internal identifier details.
 - A development-only sample-data fallback. Production with missing Supabase configuration shows the setup-required state and never shows sample tournaments as real data.
-- Migrations 001 through 007 plus disposable PostgreSQL integration tests.
+- Migrations 001 through 008 plus disposable PostgreSQL integration tests.
 
 ## Owner actions that cannot be automated here
 
@@ -85,6 +85,7 @@ npx supabase@latest link --project-ref YOUR_PRODUCTION_PROJECT_REF
 202608240005_registration_operations_auth_readiness.sql
 202608240006_database_correctness_hotfix.sql
 202608250007_final_pre_oauth_cleanup.sql
+202608250008_supabase_pgcrypto_search_path.sql
 ```
 
 6. Preview and apply only the pending migrations:
@@ -96,7 +97,7 @@ npx supabase@latest db push
 npx supabase@latest migration list
 ```
 
-The final `migration list` must show all seven timestamps in both LOCAL and REMOTE. Never run `db reset --linked` against production and never use `--include-seed` for production.
+The final `migration list` must show all eight timestamps in both LOCAL and REMOTE. Never run `db reset --linked` against production and never use `--include-seed` for production.
 
 7. In the Supabase SQL editor, verify RLS without changing the schema:
 
@@ -128,7 +129,7 @@ The endpoint checks safe configuration presence only. It deliberately does not q
 
 ## Migration safety
 
-The production path is the same fresh-chain path used by `pnpm test:integration`: PostgreSQL 17, Supabase-style `anon`, `authenticated`, and `service_role` defaults, migrations sorted by filename from 001 through 007, then schema and behavior verification. Historical migrations remain unchanged.
+The production path is the same fresh-chain path used by `pnpm test:integration`: PostgreSQL 17, Supabase-style `anon`, `authenticated`, and `service_role` defaults, migrations sorted by filename from 001 through 008, then schema and behavior verification. Historical migrations remain unchanged.
 
 Run the integration test only against a fresh disposable local database. The runner refuses remote databases unless an explicit test-only override is supplied. Do not set that override for production.
 

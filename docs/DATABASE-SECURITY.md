@@ -1,10 +1,10 @@
 # Database security audit
 
-This audit covers migrations 001 through 007 and the effective schema after they run in filename order.
+This audit covers migrations 001 through 008 and the effective schema after they run in filename order.
 
 ## SECURITY DEFINER findings
 
-- Every `SECURITY DEFINER` function explicitly sets `search_path = public, pg_temp`.
+- Every `SECURITY DEFINER` function pins an explicit trusted search path. Migration 008 places `extensions` first only for the two invite-code functions that call Supabase-hosted `pgcrypto`; all others use `public, pg_temp`.
 - Trigger-only helpers and the unused registration-ownership helper are not executable by browser roles after migration 006. Triggers continue to invoke their helpers without exposing them as RPCs.
 - `normalize_game_id_part(text, boolean)` is a pure `IMMUTABLE` text transform with no table access. It remains executable by `authenticated` only so trusted application clients can use exactly the database normalization rule; `anon` and `service_role` do not receive EXECUTE.
 - `upsert_verified_wechat_account(...)` is executable only by `service_role` and must be called from a trusted OAuth callback service.
@@ -27,5 +27,5 @@ The migration contract suite checks the pinned search path for every function de
 
 - Production security still depends on protecting the Supabase service-role key and WeChat application secret outside the repository and browser bundle.
 - The trusted OAuth callback must validate state, provider response, approved application ID, redirect target, and session issuance.
-- The independent integration CI job uses a disposable PostgreSQL 17 service and emulates Supabase's default API-role grants. A passing run proves the 001-to-007 chain and the final catalog/behavior checks, not compatibility with an already-modified production database.
+- The independent integration CI job uses a disposable PostgreSQL 17 service and emulates Supabase's default API-role grants. A passing run proves the 001-to-008 chain and the final catalog/behavior checks, not compatibility with an already-modified production database.
 - Audit events are append-only through application permissions, but a database owner or service administrator can still alter them; external tamper-evident logging is a later operational decision.

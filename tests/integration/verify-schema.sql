@@ -189,7 +189,10 @@ begin
   join pg_namespace n on n.oid = p.pronamespace
   where n.nspname = 'public'
     and p.prosecdef
-    and not coalesce(p.proconfig, '{}'::text[]) @> array['search_path=public, pg_temp']
+    and not (
+      coalesce(p.proconfig, '{}'::text[]) @> array['search_path=public, pg_temp']
+      or coalesce(p.proconfig, '{}'::text[]) @> array['search_path=extensions, public, pg_temp']
+    )
   limit 1;
 
   if insecure_function is not null then

@@ -7,6 +7,7 @@ const hardeningMigration = readFileSync(new URL('../supabase/migrations/20260824
 const operationsMigration = readFileSync(new URL('../supabase/migrations/202608240005_registration_operations_auth_readiness.sql', import.meta.url), 'utf8');
 const correctnessMigration = readFileSync(new URL('../supabase/migrations/202608240006_database_correctness_hotfix.sql', import.meta.url), 'utf8');
 const finalPreOAuthMigration = readFileSync(new URL('../supabase/migrations/202608250007_final_pre_oauth_cleanup.sql', import.meta.url), 'utf8');
+const supabasePgcryptoMigration = readFileSync(new URL('../supabase/migrations/202608250008_supabase_pgcrypto_search_path.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -106,4 +107,9 @@ test('fresh-chain privilege hardening tolerates the legacy trigger function alre
   assert.match(correctnessMigration, /revoke select on table public\.tournaments from anon, authenticated/);
   assert.match(correctnessMigration, /revoke select on table public\.tournament_registrations from authenticated/);
   assert.match(correctnessMigration, /get_admin_registration_review_metadata/);
+});
+
+test('hosted Supabase pgcrypto calls resolve through a pinned trusted extension schema', () => {
+  assert.match(supabasePgcryptoMigration, /alter function public\.hash_tournament_invite_code\(\)[\s\S]*set search_path = extensions, public, pg_temp/);
+  assert.match(supabasePgcryptoMigration, /alter function public\.register_for_tournament\([\s\S]*set search_path = extensions, public, pg_temp/);
 });
