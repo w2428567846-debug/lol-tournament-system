@@ -19,6 +19,20 @@ begin
   end if;
 
   if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'tournament_registrations'
+      and column_name = 'valuation'
+  ) or not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'tournament_registrations'
+      and column_name = 'matches_played'
+  ) then
+    raise exception 'player valuation or tournament performance columns are missing';
+  end if;
+
+  if not exists (
     select 1 from pg_constraint
     where conrelid = 'public.tournament_registrations'::regclass
       and conname = 'registration_pending_review_metadata_empty'
@@ -130,6 +144,13 @@ begin
     raise exception 'safe tournament details RPC is unavailable to intended viewers';
   end if;
 
+  if not has_function_privilege('anon', 'public.get_public_player_roster()', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.get_public_player_roster()', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.get_public_player_roster()', 'EXECUTE')
+  then
+    raise exception 'safe public player roster RPC privileges are incorrect';
+  end if;
+
   if has_function_privilege('anon', 'public.register_for_tournament(uuid,text,text,text,public.player_role,public.player_role,text,text,text)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.register_for_tournament(uuid,text,text,text,public.player_role,public.player_role,text,text,text)', 'EXECUTE')
   then
@@ -193,6 +214,8 @@ begin
 
   if not has_column_privilege('authenticated', 'public.tournament_registrations', 'id', 'SELECT')
     or not has_column_privilege('authenticated', 'public.tournament_registrations', 'account_id', 'SELECT')
+    or not has_column_privilege('authenticated', 'public.tournament_registrations', 'valuation', 'SELECT')
+    or not has_column_privilege('authenticated', 'public.tournament_registrations', 'matches_played', 'SELECT')
   then
     raise exception 'safe own/admin registration queries lost required columns';
   end if;

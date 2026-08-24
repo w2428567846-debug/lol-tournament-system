@@ -5,7 +5,7 @@ import type { AccountRegistration, PlayerProfile, TournamentRegistration } from 
 type RecordValue = Record<string, unknown>;
 
 const PLAYER_PROFILE_COLUMNS = 'id, game_name, game_tag, primary_role, secondary_role, current_rank, group_nickname, bio, created_at, updated_at';
-const PLAYER_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, created_at, updated_at';
+const PLAYER_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, valuation, team_name, matches_played, wins, losses, kills, deaths, assists, placement, created_at, updated_at';
 
 function mapProfile(row: RecordValue): PlayerProfile {
   const gameName = String(row.game_name);
@@ -43,6 +43,15 @@ export function mapRegistration(row: RecordValue): TournamentRegistration {
     reviewedAt: row.reviewed_at == null ? null : String(row.reviewed_at),
     reviewNote: row.review_note == null ? null : String(row.review_note),
     reviewerLabel: row.reviewed_at == null ? null : '管理员',
+    valuation: row.valuation == null ? null : Number(row.valuation),
+    teamName: row.team_name == null ? null : String(row.team_name),
+    matchesPlayed: Number(row.matches_played ?? 0),
+    wins: Number(row.wins ?? 0),
+    losses: Number(row.losses ?? 0),
+    kills: Number(row.kills ?? 0),
+    deaths: Number(row.deaths ?? 0),
+    assists: Number(row.assists ?? 0),
+    placement: row.placement == null ? null : Number(row.placement),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   };

@@ -42,6 +42,15 @@ export function mapTournamentDetail(row: TournamentRecord): TournamentDetail {
         gameId: String(item.game_id),
         primaryRole: item.primary_role as TournamentDetail['participants'][number]['primaryRole'],
         rank: String(item.rank),
+        valuation: item.valuation == null ? null : Number(item.valuation),
+        teamName: item.team_name == null ? null : String(item.team_name),
+        matchesPlayed: Number(item.matches_played ?? 0),
+        wins: Number(item.wins ?? 0),
+        losses: Number(item.losses ?? 0),
+        kills: Number(item.kills ?? 0),
+        deaths: Number(item.deaths ?? 0),
+        assists: Number(item.assists ?? 0),
+        placement: item.placement == null ? null : Number(item.placement),
       };
     }),
   };

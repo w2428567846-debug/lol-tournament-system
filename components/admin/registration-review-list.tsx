@@ -76,6 +76,7 @@ export function RegistrationReviewList({ registrations }: { registrations: Admin
             </div>
             <div>
               <p className="text-sm font-bold text-slate-200">{registration.tournament.name}</p>
+              <p className="mt-1 text-xs text-slate-600">{registration.teamName ?? '尚未分队'} · {registration.valuation == null ? '费用待定' : `${registration.valuation.toFixed(1)} 费`}</p>
               {registration.note ? <p className="mt-2 text-xs leading-5 text-slate-500">备注：{registration.note}</p> : <p className="mt-2 text-xs text-slate-700">无备注</p>}
               {registration.reviewNote ? <p className="mt-2 border-l-2 border-[#d8b968]/40 pl-3 text-xs leading-5 text-amber-100">审核备注：{registration.reviewNote}</p> : null}
               {isRosterFrozen(registration.tournament.status) ? <p className="mt-2 text-xs font-bold text-amber-200">名单已锁定</p> : null}

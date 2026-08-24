@@ -9,6 +9,7 @@ const correctnessMigration = readFileSync(new URL('../supabase/migrations/202608
 const finalPreOAuthMigration = readFileSync(new URL('../supabase/migrations/202608250007_final_pre_oauth_cleanup.sql', import.meta.url), 'utf8');
 const supabasePgcryptoMigration = readFileSync(new URL('../supabase/migrations/202608250008_supabase_pgcrypto_search_path.sql', import.meta.url), 'utf8');
 const publicTournamentPolicyMigration = readFileSync(new URL('../supabase/migrations/202608250009_split_public_tournament_read_policy.sql', import.meta.url), 'utf8');
+const playerPerformanceMigration = readFileSync(new URL('../supabase/migrations/202608250010_player_valuation_tournament_performance.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -120,4 +121,17 @@ test('anonymous tournament reads do not invoke the authenticated-only admin help
   assert.match(publicTournamentPolicyMigration, /create policy tournaments_read_public on public\.tournaments\s+for select to anon, authenticated\s+using \(visibility = 'PUBLIC' and status <> 'DRAFT'\)/);
   assert.match(publicTournamentPolicyMigration, /create policy tournaments_read_admin on public\.tournaments\s+for select to authenticated\s+using \(public\.is_admin\(\)\)/);
   assert.doesNotMatch(publicTournamentPolicyMigration, /for select to anon[^;]*is_admin\(\)/s);
+});
+
+test('virtual player value and per-tournament performance are organizer-managed snapshots', () => {
+  assert.match(playerPerformanceMigration, /add column valuation numeric\(4,1\)/);
+  assert.match(playerPerformanceMigration, /add column team_name text/);
+  assert.match(playerPerformanceMigration, /add column matches_played integer not null default 0/);
+  assert.match(playerPerformanceMigration, /registration_record_within_matches/);
+  assert.match(playerPerformanceMigration, /organizer_fields_changed[\s\S]*if public\.is_admin\(\)[\s\S]*if organizer_fields_changed then/);
+  assert.match(playerPerformanceMigration, /if organizer_fields_changed then raise exception 'ORGANIZER_FIELDS_IMMUTABLE'/);
+  assert.match(playerPerformanceMigration, /tournament\.visibility = 'PUBLIC'/);
+  assert.match(playerPerformanceMigration, /grant execute on function public\.get_public_player_roster\(\) to anon, authenticated/);
+  assert.doesNotMatch(playerPerformanceMigration, /wechat_(openid|unionid)/);
+  assert.match(playerPerformanceMigration, /never a payment or real-money amount/);
 });

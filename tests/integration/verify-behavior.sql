@@ -323,6 +323,18 @@ update public.tournament_registrations
 set status = 'APPROVED', review_note = 'Public approval in integration test'
 where id = ((select payload ->> 'id' from integration_calls where label = 'public-registration'))::uuid;
 
+update public.tournament_registrations
+set valuation = 5.5,
+    team_name = 'Rift Testers',
+    matches_played = 3,
+    wins = 2,
+    losses = 1,
+    kills = 18,
+    deaths = 7,
+    assists = 24,
+    placement = 2
+where id = ((select payload ->> 'id' from integration_calls where label = 'public-registration'))::uuid;
+
 reset role;
 select set_config('request.jwt.claim.sub', '', false);
 
@@ -332,6 +344,8 @@ insert into integration_calls (label, payload)
 select 'private-anon', public.get_tournament_details('private-integration-cup');
 insert into integration_calls (label, payload)
 select 'public-anon', public.get_tournament_details('public-integration-cup');
+insert into integration_calls (label, payload)
+select 'public-player-roster', public.get_public_player_roster();
 
 do $$
 begin
@@ -442,6 +456,7 @@ do $$
 declare
   anon_private jsonb;
   public_preview jsonb;
+  public_roster jsonb;
   nonparticipant jsonb;
   pending_view jsonb;
   approved_view jsonb;
@@ -455,6 +470,7 @@ declare
 begin
   select payload into anon_private from integration_calls where label = 'private-anon';
   select payload into public_preview from integration_calls where label = 'public-anon';
+  select payload into public_roster from integration_calls where label = 'public-player-roster';
   select payload into nonparticipant from integration_calls where label = 'private-nonparticipant';
   select payload into pending_view from integration_calls where label = 'private-pending';
   select payload into approved_view from integration_calls where label = 'private-approved';
@@ -528,6 +544,17 @@ begin
     or (public_preview ->> 'approved_count')::integer <> 1
   then
     raise exception 'public tournament preview was unexpectedly restricted';
+  end if;
+
+  if jsonb_array_length(public_roster) <> 1
+    or public_roster -> 0 ->> 'game_id' <> 'PublicPlayer#PUB'
+    or (public_roster -> 0 ->> 'valuation')::numeric <> 5.5
+    or public_roster -> 0 ->> 'latest_team_name' <> 'Rift Testers'
+    or (public_roster -> 0 ->> 'matches_played')::integer <> 3
+    or public_roster -> 0 ? 'account_id'
+    or public_roster -> 0 ? 'id'
+  then
+    raise exception 'public player roster did not return safe performance data';
   end if;
 
   for detail_response in

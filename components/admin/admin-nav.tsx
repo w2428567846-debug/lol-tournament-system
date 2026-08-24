@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 const adminNav = [
   ['/admin', 'OV', '总览'],
   ['/admin/tournaments', 'TR', '赛事管理'],
-  ['/admin/players', 'PL', '常用资料'],
+  ['/admin/players', 'PL', '选手数据'],
   ['/admin/registrations', 'RG', '报名审核'],
 ];
 

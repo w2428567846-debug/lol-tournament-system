@@ -3,31 +3,78 @@ import Link from '@/components/navigation/safe-link';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
+import { SetupRequired } from '@/components/supabase/setup-required';
+import { getPublicPlayerRoster } from '@/lib/players/queries';
+import { playerRoleLabels } from '@/lib/registrations/labels';
+import type { PlayerRole, PublicPlayerRosterEntry } from '@/types';
 
-export const metadata: Metadata = { title: '选手中心' };
+export const metadata: Metadata = { title: '选手花名册' };
 
-const roles = [
-  ['TOP', '上路', '承担边线压力与前排职责'],
-  ['JUNGLE', '打野', '控制地图资源并带动节奏'],
-  ['MID', '中路', '连接上下半区与核心输出'],
-  ['ADC', '下路', '提供持续物理伤害'],
-  ['SUPPORT', '辅助', '视野、开团与队伍保护'],
+const roles: Array<{ value: PlayerRole | ''; label: string }> = [
+  { value: '', label: '全部位置' },
+  { value: 'TOP', label: '上路' },
+  { value: 'JUNGLE', label: '打野' },
+  { value: 'MID', label: '中路' },
+  { value: 'ADC', label: '下路' },
+  { value: 'SUPPORT', label: '辅助' },
 ];
 
-export default function PlayersPage() {
+export default async function PlayersPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const search = typeof params.search === 'string' ? params.search.trim() : '';
+  const role = typeof params.role === 'string' && roles.some((item) => item.value === params.role) ? params.role as PlayerRole : '';
+  const { players, configurationMissing } = await getPublicPlayerRoster();
+  const needle = search.toLocaleLowerCase('zh-CN');
+  const filtered = players.filter((player) => (!role || player.primaryRole === role)
+    && (!needle || player.gameId.toLocaleLowerCase('zh-CN').includes(needle) || (player.latestTeamName ?? '').toLocaleLowerCase('zh-CN').includes(needle)));
+
   return (
     <main className="min-h-screen bg-[#080b10] text-white">
       <SiteHeader />
-      <PageIntro eyebrow="Player hub" title="社区选手中心" description="报名时直接填写中国区游戏 ID、段位和位置；常用资料只是可选预填，不会阻挡首次报名。" />
-      <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
-        <div className="grid gap-4 md:grid-cols-3"><Feature code="01" title="直接报名" description="登录后即可填写本次赛事资料，无需预先建立档案。" /><Feature code="02" title="赛事快照" description="每次报名独立保存游戏 ID、段位和位置，历史记录不会被覆盖。" /><Feature code="03" title="资料分级保护" description="公开页面只显示经过审核的必要信息，完整资料仅本人和管理员可见。" /></div>
-        <div className="mt-16 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Player roles</p><h2 className="mt-2 text-3xl font-black tracking-[-.04em]">位置说明</h2></div><p className="max-w-md text-sm leading-6 text-slate-500">报名时可选择一个首选位置和一个不同的第二位置。</p></div>
-        <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-5">{roles.map(([code, title, description]) => <article key={code} className="border border-white/9 bg-[#0d1219] p-5"><span className="text-[10px] font-black tracking-[.18em] text-[#d8b968]">{code}</span><h3 className="mt-4 text-lg font-black">{title}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{description}</p></article>)}</div>
-      </section>
-      <section id="register" className="border-y border-white/8 bg-[#0a0e14]"><div className="mx-auto flex max-w-7xl flex-col gap-7 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Join a tournament</p><h2 className="mt-3 text-3xl font-black tracking-[-.04em]">准备好报名了吗？</h2><p className="mt-3 text-sm text-slate-500">选择开放赛事，登录后直接提交游戏 ID 即可。</p></div><div className="flex flex-wrap gap-3"><Link href="/tournaments" className="gold-button inline-flex min-h-12 items-center px-7 text-sm font-black text-[#080b10]">浏览开放赛事 →</Link><Link href="/account" className="inline-flex min-h-12 items-center border border-white/12 px-7 text-sm font-bold text-slate-300">查看我的报名</Link></div></div></section>
+      <PageIntro eyebrow="Player roster" title="社区选手花名册" description="查看选手段位、位置、虚拟费用与历届赛事表现。费用由管理员评定，只表示竞技水平，不涉及付款或真实货币。" />
+      {configurationMissing ? <SetupRequired /> : (
+        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-10">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Metric value={String(players.length)} label="公开选手" />
+            <Metric value={String(players.reduce((sum, player) => sum + player.matchesPlayed, 0))} label="累计对局" />
+            <Metric value={String(players.reduce((sum, player) => sum + player.tournamentsPlayed, 0))} label="参赛人次" />
+          </div>
+
+          <form className="mt-8 grid gap-3 border border-white/8 bg-[#0d1219] p-4 sm:grid-cols-[1fr_180px_auto]">
+            <input name="search" defaultValue={search} placeholder="搜索游戏 ID 或战队" className="min-h-11 border border-white/10 bg-[#080b10] px-4 text-sm text-white outline-none focus:border-[#d8b968]/55" />
+            <select name="role" defaultValue={role} className="min-h-11 border border-white/10 bg-[#080b10] px-4 text-sm text-slate-300 outline-none focus:border-[#d8b968]/55">{roles.map((item) => <option key={item.value || 'ALL'} value={item.value}>{item.label}</option>)}</select>
+            <button className="gold-button min-h-11 px-6 text-xs font-black text-[#080b10]">筛选花名册</button>
+          </form>
+
+          <div className="mt-7 grid gap-4 lg:grid-cols-2">
+            {filtered.map((player) => <PlayerRosterCard key={player.gameId} player={player} />)}
+          </div>
+          {filtered.length === 0 ? <div className="mt-7 border border-dashed border-white/12 px-6 py-12 text-center text-sm text-slate-600">{players.length === 0 ? '公开赛事还没有已通过的选手。管理员审核报名并填写费用后，这里会自动出现。' : '没有符合筛选条件的选手。'}</div> : null}
+
+          <div className="mt-12 border border-white/8 bg-[#0a0e14] p-6 text-sm leading-6 text-slate-500">
+            这里只汇总已发布的公开赛事与已通过报名。私人赛事选手不会出现在公开花名册；每届赛事的战队、费用和数据分别保存，历史记录不会互相覆盖。
+          </div>
+        </section>
+      )}
+      <section className="border-y border-white/8 bg-[#0a0e14]"><div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-12 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Join a tournament</p><h2 className="mt-3 text-2xl font-black">想加入下一场比赛？</h2></div><Link href="/tournaments" className="gold-button inline-flex min-h-12 items-center px-7 text-sm font-black text-[#080b10]">浏览开放赛事 →</Link></div></section>
       <SiteFooter />
     </main>
   );
 }
 
-function Feature({ code, title, description }: { code: string; title: string; description: string }) { return <article className="border border-white/9 bg-[#0d1219] p-6"><span className="text-[10px] font-black tracking-[.18em] text-[#d8b968]">{code}</span><h2 className="mt-5 text-xl font-black">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-500">{description}</p></article>; }
+function PlayerRosterCard({ player }: { player: PublicPlayerRosterEntry }) {
+  const kda = player.matchesPlayed === 0 ? '—' : ((player.kills + player.assists) / Math.max(player.deaths, 1)).toFixed(2);
+  return (
+    <article className="border border-white/9 bg-[#0d1219] p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-5">
+        <div className="min-w-0"><h2 className="[overflow-wrap:anywhere] text-xl font-black">{player.gameId}</h2><p className="mt-2 text-sm text-slate-400">{player.rank} · {playerRoleLabels[player.primaryRole]}{player.secondaryRole ? ` / ${playerRoleLabels[player.secondaryRole]}` : ''}</p><p className="mt-1 text-xs text-slate-600">当前战队：{player.latestTeamName ?? '待分配'}</p></div>
+        <div className="shrink-0 border border-[#d8b968]/30 bg-[#d8b968]/8 px-4 py-3 text-right"><p className="text-2xl font-black text-[#e6cc84]">{player.valuation == null ? '—' : player.valuation.toFixed(1)}</p><p className="mt-1 text-[9px] font-black uppercase tracking-[.2em] text-[#d8b968]">费用</p></div>
+      </div>
+      <dl className="mt-5 grid grid-cols-4 gap-2 border-y border-white/8 py-4 text-center"><Stat value={`${player.wins}-${player.losses}`} label="胜负" /><Stat value={kda} label="KDA" /><Stat value={String(player.matchesPlayed)} label="场数" /><Stat value={String(player.tournamentsPlayed)} label="赛事" /></dl>
+      <details className="group mt-4"><summary className="cursor-pointer list-none text-xs font-bold text-[#d8b968]">查看历届赛事数据 <span className="ml-1 inline-block transition group-open:rotate-90">→</span></summary><div className="mt-4 space-y-3">{player.history.map((history) => <div key={history.tournamentSlug} className="border border-white/8 bg-[#080b10] p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><Link href={`/tournaments/${history.tournamentSlug}`} className="text-sm font-black text-slate-200 hover:text-[#e6cc84]">{history.tournamentName}</Link><p className="mt-1 text-xs text-slate-600">{history.teamName ?? '未分队'} · {playerRoleLabels[history.primaryRole]} · {history.rank}</p></div><span className="text-xs font-black text-[#d8b968]">{history.valuation == null ? '费用待定' : `${history.valuation.toFixed(1)} 费`}</span></div><p className="mt-3 text-xs text-slate-500">{history.matchesPlayed} 场 · {history.wins} 胜 {history.losses} 负 · {history.kills}/{history.deaths}/{history.assists}{history.placement ? ` · 第 ${history.placement} 名` : ''}</p></div>)}</div></details>
+    </article>
+  );
+}
+
+function Metric({ value, label }: { value: string; label: string }) { return <div className="border border-white/9 bg-[#0d1219] p-5"><p className="text-3xl font-black">{value}</p><p className="mt-2 text-[10px] font-bold uppercase tracking-[.18em] text-slate-600">{label}</p></div>; }
+function Stat({ value, label }: { value: string; label: string }) { return <div><dt className="text-sm font-black text-slate-200">{value}</dt><dd className="mt-1 text-[9px] uppercase tracking-[.16em] text-slate-600">{label}</dd></div>; }

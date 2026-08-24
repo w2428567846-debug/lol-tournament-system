@@ -56,6 +56,15 @@ export type TournamentParticipantPreview = {
   gameId: string;
   primaryRole: PlayerRole;
   rank: string;
+  valuation: number | null;
+  teamName: string | null;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  placement: number | null;
 };
 
 export type TournamentDetail = Tournament & {
@@ -138,6 +147,15 @@ export type TournamentRegistration = {
   reviewedAt: string | null;
   reviewNote: string | null;
   reviewerLabel: string | null;
+  valuation: number | null;
+  teamName: string | null;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  placement: number | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -151,4 +169,37 @@ export type AccountRegistration = TournamentRegistration & {
 
 export type AdminRegistration = TournamentRegistration & {
   tournament: Pick<Tournament, 'id' | 'name' | 'slug' | 'status' | 'timezone'>;
+};
+
+export type PlayerTournamentPerformance = {
+  tournamentName: string;
+  tournamentSlug: string;
+  teamName: string | null;
+  valuation: number | null;
+  rank: string;
+  primaryRole: PlayerRole;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  placement: number | null;
+};
+
+export type PublicPlayerRosterEntry = {
+  gameId: string;
+  rank: string;
+  primaryRole: PlayerRole;
+  secondaryRole: PlayerRole | null;
+  valuation: number | null;
+  latestTeamName: string | null;
+  tournamentsPlayed: number;
+  matchesPlayed: number;
+  wins: number;
+  losses: number;
+  kills: number;
+  deaths: number;
+  assists: number;
+  history: PlayerTournamentPerformance[];
 };

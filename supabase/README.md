@@ -1,7 +1,7 @@
 # Supabase setup
 
 1. Create a Supabase project.
-2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, 006 is the database-correctness hotfix, and 007 limits private participant previews to admins plus active PENDING/APPROVED/WAITLISTED registrations.
+2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, 006 is the database-correctness hotfix, 007 limits private participant previews to active viewers, 008–009 harden hosted PostgreSQL behavior, and 010 adds organizer-managed virtual player values plus per-tournament performance snapshots.
 3. Copy `.env.example` to `.env.local` and add the project URL and publishable/anon key.
 4. Email remains a temporary testing adapter. Keep `ENABLE_EMAIL_DEV_AUTH=false` by default. A controlled production closed beta may set it to `true` only together with the owner checklist in [`docs/PRODUCTION-DEPLOYMENT.md`](../docs/PRODUCTION-DEPLOYMENT.md); disable the flag and Supabase email provider when real WeChat OAuth launches.
 5. Create the first development account through `/register`, then promote it in the SQL editor:
@@ -27,6 +27,8 @@ where auth_user_id = (select id from auth.users where email = 'your-email@exampl
 - Once a tournament reaches `ROSTER_LOCKED` or a later operational phase, normal review and player edits are rejected by database triggers.
 - Current review metadata lives on `tournament_registrations`; append-only status events live in the private `registration_review_events` table.
 - Rejected players may change their snapshot and return to `PENDING` only during the live registration window.
+- Virtual player value, tournament team, W/L, K/D/A and placement are organizer-only fields. They are not payment or real-money fields, and are stored separately for each tournament registration.
+- `get_public_player_roster()` returns only approved players from published public tournaments and never returns account, OpenID or UnionID identifiers.
 
 ## WeChat identity
 

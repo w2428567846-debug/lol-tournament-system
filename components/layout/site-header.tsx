@@ -4,7 +4,7 @@ import { getViewer } from '@/lib/auth/server';
 const navigation = [
   { label: '首页', href: '/' },
   { label: '赛事', href: '/tournaments' },
-  { label: '报名说明', href: '/players' },
+  { label: '选手名册', href: '/players' },
   { label: '我的报名', href: '/account' },
 ];
 

@@ -5,7 +5,7 @@ import type { AdminRegistration, PlayerProfile, RegistrationStatus, Tournament }
 
 type Row = Record<string, unknown>;
 
-const ADMIN_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, created_at, updated_at';
+const ADMIN_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, valuation, team_name, matches_played, wins, losses, kills, deaths, assists, placement, created_at, updated_at';
 const ADMIN_TOURNAMENT_COLUMNS = 'id, name, slug, description, rules, status, visibility, registration_type, timezone, registration_start_at, registration_end_at, player_limit, team_limit, start_at, end_at, format, default_best_of, created_at, updated_at';
 const ADMIN_PLAYER_COLUMNS = 'id, game_name, game_tag, primary_role, secondary_role, current_rank, group_nickname, bio, created_at, updated_at';
 

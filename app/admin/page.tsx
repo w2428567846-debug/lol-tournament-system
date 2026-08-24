@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
       </section>
       <section className="mt-10 grid gap-4 lg:grid-cols-3">
         <AdminShortcut href="/admin/tournaments" code="TR" title="赛事管理" description="查看数据库中的赛事状态、可见性和报名周期。" />
-        <AdminShortcut href="/admin/players" code="PL" title="常用资料" description="查看玩家自愿保存的游戏 ID 与预填资料。" />
+        <AdminShortcut href="/admin/players" code="PL" title="选手数据" description="设置虚拟费用、战队归属与每届赛事表现。" />
         <AdminShortcut href="/admin/registrations" code="RG" title="报名审核" description="筛选、检索并审核个人赛事报名。" />
       </section>
     </main>
