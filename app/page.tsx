@@ -27,7 +27,7 @@ export default async function HomePage() {
           <div className="mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center pb-14 text-center">
             <div className="mb-7 flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.34em] text-[#e6ca7b] sm:text-xs"><span className="h-px w-8 bg-[#d8b968] sm:w-12" />Rift Command · Community Tournament<span className="h-px w-8 bg-[#d8b968] sm:w-12" /></div>
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.4em] text-cyan-200 sm:text-sm">{registrationOpen ? 'Registration now open' : 'Current tournament'}</p>
-            <h1 className="max-w-5xl text-5xl font-black uppercase leading-[.92] tracking-[-0.06em] text-white drop-shadow-[0_8px_35px_rgba(0,0,0,.9)] sm:text-7xl lg:text-[5.8rem]">{tournament.name}</h1>
+            <h1 className="max-w-5xl [overflow-wrap:anywhere] text-5xl font-black uppercase leading-[.92] tracking-[-0.06em] text-white drop-shadow-[0_8px_35px_rgba(0,0,0,.9)] sm:text-7xl lg:text-[5.8rem]">{tournament.name}</h1>
             <p className="mt-7 max-w-2xl text-sm leading-7 text-slate-300 drop-shadow-lg sm:text-lg">{tournament.description}</p>
             <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
               <Link href={registrationOpen ? `/tournaments/${tournament.slug}/register` : `/tournaments/${tournament.slug}`} className="gold-button inline-flex min-h-12 items-center justify-center px-8 text-sm font-black uppercase tracking-[0.16em] text-[#080b10]">{registrationOpen ? '立即报名' : '查看赛事'} <span aria-hidden="true" className="ml-3">→</span></Link>

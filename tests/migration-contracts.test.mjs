@@ -6,6 +6,7 @@ const migration = readFileSync(new URL('../supabase/migrations/202608240003_comm
 const hardeningMigration = readFileSync(new URL('../supabase/migrations/202608240004_registration_production_hardening.sql', import.meta.url), 'utf8');
 const operationsMigration = readFileSync(new URL('../supabase/migrations/202608240005_registration_operations_auth_readiness.sql', import.meta.url), 'utf8');
 const correctnessMigration = readFileSync(new URL('../supabase/migrations/202608240006_database_correctness_hotfix.sql', import.meta.url), 'utf8');
+const finalPreOAuthMigration = readFileSync(new URL('../supabase/migrations/202608250007_final_pre_oauth_cleanup.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -85,13 +86,18 @@ test('new tournament modes and registrations are SOLO-only without deleting lega
   assert.doesNotMatch(hardeningMigration, /drop type public\.registration_type/);
 });
 
-test('private anonymous tournament detail withholds participant rows but keeps counts', () => {
-  assert.match(correctnessMigration, /participants_restricted := tournament_row\.visibility = 'PRIVATE'[\s\S]*viewer_account_id is null[\s\S]*account_id = viewer_account_id/);
-  assert.match(correctnessMigration, /if not participants_restricted then[\s\S]*registration\.game_name/);
-  assert.match(correctnessMigration, /'approved_count', approved_total/);
-  assert.match(correctnessMigration, /'participants_restricted', participants_restricted/);
-  assert.doesNotMatch(correctnessMigration, /'created_by'/);
-  assert.doesNotMatch(correctnessMigration, /wechat_(openid|unionid)'/);
+test('private participant previews require an active registration while counts remain public', () => {
+  assert.match(finalPreOAuthMigration, /participants_restricted := tournament_row\.visibility = 'PRIVATE'[\s\S]*viewer_account_id is null[\s\S]*account_id = viewer_account_id[\s\S]*status in \('PENDING', 'APPROVED', 'WAITLISTED'\)/);
+  assert.match(finalPreOAuthMigration, /if not participants_restricted then[\s\S]*registration\.game_name/);
+  assert.match(finalPreOAuthMigration, /'approved_count', approved_total/);
+  assert.match(finalPreOAuthMigration, /'participants_restricted', participants_restricted/);
+  assert.doesNotMatch(finalPreOAuthMigration, /'created_by'/);
+  assert.doesNotMatch(finalPreOAuthMigration, /wechat_(openid|unionid)'/);
+});
+
+test('pure game-ID normalization remains authenticated-only', () => {
+  assert.match(correctnessMigration, /revoke all on function public\.normalize_game_id_part\(text, boolean\) from public, anon, authenticated, service_role/);
+  assert.match(correctnessMigration, /grant execute on function public\.normalize_game_id_part\(text, boolean\) to authenticated/);
 });
 
 test('fresh-chain privilege hardening tolerates the legacy trigger function already being dropped', () => {

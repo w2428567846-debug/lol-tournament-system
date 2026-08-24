@@ -13,7 +13,7 @@ export function TournamentCard({ tournament, featured = false }: { tournament: T
           <span className="bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">{tournamentStatusLabels[tournament.status]}</span>
           <span className="text-[10px] font-bold tracking-[0.12em] text-slate-600">{tournamentFormatLabels[tournament.format]}</span>
         </div>
-        <h3 className="max-w-2xl text-3xl font-black uppercase tracking-[-0.04em] text-white sm:text-4xl">{tournament.name}</h3>
+        <h3 className="max-w-2xl [overflow-wrap:anywhere] text-3xl font-black uppercase tracking-[-0.04em] text-white sm:text-4xl">{tournament.name}</h3>
         <p className="mt-4 max-w-2xl leading-7 text-slate-400">{tournament.description}</p>
         <div className="mt-9 flex flex-wrap gap-x-8 gap-y-4 text-sm">
           <Stat label="赛期" value={formatDateRange(tournament.startAt, tournament.endAt, tournament.timezone)} />

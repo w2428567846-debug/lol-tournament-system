@@ -98,8 +98,34 @@ begin
     raise exception 'safe own-review-history RPC privileges are incorrect';
   end if;
 
+  if not has_function_privilege('authenticated', 'public.current_account_id()', 'EXECUTE')
+    or has_function_privilege('anon', 'public.current_account_id()', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.current_account_id()', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.is_admin()', 'EXECUTE')
+    or has_function_privilege('anon', 'public.is_admin()', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.is_admin()', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.user_owns_player(uuid)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.user_owns_player(uuid)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.user_owns_player(uuid)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.current_account_summary()', 'EXECUTE')
+    or has_function_privilege('anon', 'public.current_account_summary()', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.current_account_summary()', 'EXECUTE')
+  then
+    raise exception 'account helper privileges are incorrect';
+  end if;
+
+  -- This helper is pure immutable text normalization with no table access. It
+  -- remains callable only by authenticated clients that share DB normalization.
+  if not has_function_privilege('authenticated', 'public.normalize_game_id_part(text,boolean)', 'EXECUTE')
+    or has_function_privilege('anon', 'public.normalize_game_id_part(text,boolean)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.normalize_game_id_part(text,boolean)', 'EXECUTE')
+  then
+    raise exception 'game-ID normalization helper privileges are incorrect';
+  end if;
+
   if not has_function_privilege('anon', 'public.get_tournament_details(text)', 'EXECUTE')
     or not has_function_privilege('authenticated', 'public.get_tournament_details(text)', 'EXECUTE')
+    or has_function_privilege('service_role', 'public.get_tournament_details(text)', 'EXECUTE')
   then
     raise exception 'safe tournament details RPC is unavailable to intended viewers';
   end if;

@@ -1,6 +1,6 @@
 # Database integration tests
 
-The domain test suite checks pure TypeScript and lightweight migration contracts without a database. The integration path below actually applies every SQL migration, in filename order, and verifies the resulting schema, privileges, Row Level Security, `SECURITY DEFINER` search paths, cross-app WeChat resolution, private-tournament visibility, safe registration responses, and admin-only review metadata.
+The domain test suite checks pure TypeScript and lightweight migration contracts without a database. The integration path below actually applies every SQL migration, in filename order, and verifies the resulting schema, privileges, Row Level Security, `SECURITY DEFINER` search paths, cross-app WeChat resolution, the full anonymous/nonparticipant/PENDING/APPROVED/WAITLISTED/REJECTED/CANCELLED/admin private-access matrix, unchanged public previews, safe registration responses, and admin-only review metadata.
 
 Use a new disposable database. Migrations are intentionally not rerun against an already-migrated database.
 

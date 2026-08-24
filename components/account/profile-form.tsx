@@ -48,7 +48,7 @@ export function ProfileForm({ profile }: { profile: PlayerProfile | null }) {
       <div className="sm:col-span-2">
         {error ? <p role="alert" className="mb-4 border border-red-300/20 bg-red-300/7 px-4 py-3 text-sm text-red-200">{error}</p> : null}
         {message ? <p className="mb-4 border border-emerald-300/20 bg-emerald-300/7 px-4 py-3 text-sm text-emerald-200">{message}</p> : null}
-        <button disabled={submitting} className="gold-button min-h-12 px-7 text-sm font-black tracking-[.1em] text-[#080b10] disabled:opacity-60">{submitting ? '保存中…' : profile ? '更新常用资料' : '保存常用资料'}</button>
+        <button disabled={submitting} className="gold-button min-h-12 w-full px-7 text-sm font-black tracking-[.1em] text-[#080b10] disabled:cursor-wait disabled:opacity-60 sm:w-auto">{submitting ? '保存中…' : profile ? '更新常用资料' : '保存常用资料'}</button>
       </div>
     </form>
   );

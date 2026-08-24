@@ -15,7 +15,7 @@
 - 账户与游戏 ID 双重防重复、名单锁定与数据库审批容量限制
 - 赛事时间按显式 `Asia/Shanghai` 时区输入和显示，并以 UTC `timestamptz` 保存
 - 当前产品阶段从界面、接口与数据库限制为个人报名；历史 TEAM/BOTH 数据仍可读取
-- 私人赛事仅管理员与已报名参与者可查看参与者预览；匿名用户和未报名登录用户只看到人数
+- 私人赛事仅管理员与状态为 PENDING、APPROVED 或 WAITLISTED 的有效报名玩家可查看参与者预览；匿名、未报名、REJECTED 与 CANCELLED 用户只看到人数
 - 生产环境缺少 Supabase 配置时显示明确的服务设置状态，不使用开发示例冒充真实数据
 - `/admin/tournaments/new`、`/admin/tournaments/[id]/edit` 赛事创建与生命周期操作
 - `/admin/registrations` 搜索、筛选、带备注的合法状态转换、单笔与批量审核
@@ -47,7 +47,7 @@ pnpm build
 
 真实 PostgreSQL migration 与权限/行为整合检查见 [`docs/INTEGRATION-TESTS.md`](docs/INTEGRATION-TESTS.md)；数据库权限与函数审计见 [`docs/DATABASE-SECURITY.md`](docs/DATABASE-SECURITY.md)。
 
-GitHub Actions 会在提交到 `main` 及 Pull Request 时运行轻量应用验证，并在独立 PostgreSQL 17 工作中从 001 开始应用全部 migration 和运行真实权限/行为测试。
+GitHub Actions 保持两个独立工作：`verify` 运行应用检查，`integration` 使用 PostgreSQL 17、Supabase 风格角色与默认授权，从 001 开始应用到最新 migration，再运行真实 schema 与行为验证。
 
 ## 暂未实现
 

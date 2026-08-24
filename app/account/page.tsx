@@ -54,16 +54,16 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           {registrations.length === 0 ? <div className="mt-6 border border-dashed border-white/12 p-8 text-center text-sm text-slate-500">还没有报名记录。</div> : (
             <div className="mt-6 space-y-4">
               {registrations.map((registration) => (
-                <article key={registration.id} className="grid gap-5 border border-white/9 bg-[#0d1219] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-3"><Link href={`/tournaments/${registration.tournament.slug}`} className="text-lg font-black text-white hover:text-[#d8b968]">{registration.tournament.name}</Link><StatusBadge status={registration.status} /></div>
-                    <p className="mt-3 text-sm text-slate-300">游戏 ID：<strong className="text-white">{registration.gameId}</strong></p>
+                <article key={registration.id} className="grid min-w-0 gap-5 border border-white/9 bg-[#0d1219] p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-6">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-3"><Link href={`/tournaments/${registration.tournament.slug}`} className="[overflow-wrap:anywhere] text-lg font-black text-white hover:text-[#d8b968]">{registration.tournament.name}</Link><StatusBadge status={registration.status} /></div>
+                    <p className="mt-3 text-sm text-slate-300">游戏 ID：<strong className="[overflow-wrap:anywhere] text-white">{registration.gameId}</strong></p>
                     <p className="mt-1 text-sm text-slate-400">段位：{registration.rankSnapshot} · 位置：<strong className="text-slate-200">{playerRoleLabels[registration.primaryRole]}{registration.secondaryRole ? ` / ${playerRoleLabels[registration.secondaryRole]}` : ''}</strong></p>
                     <p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt, registration.tournament.timezone)}</p>
                     {registration.reviewedAt ? <p className="mt-2 text-xs text-slate-500">最近审核：{registration.reviewerLabel ?? '管理员'} · {formatDateTime(registration.reviewedAt, registration.tournament.timezone)}</p> : null}
                     {registration.reviewNote ? <p className="mt-3 border-l-2 border-[#d8b968]/45 pl-3 text-sm leading-6 text-amber-100">管理员反馈：{registration.reviewNote}</p> : null}
                   </div>
-                  {registration.canSelfManage ? <div className="flex items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : registration.canResubmit ? <Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改并重新提交</Link> : registration.rosterLocked ? <span className="text-xs font-bold text-amber-200">名单已锁定，当前报名不可修改</span> : <span className="text-xs text-slate-600">报名已关闭或当前状态不可修改</span>}
+                  {registration.canSelfManage ? <div className="flex flex-wrap items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : registration.canResubmit ? <Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改并重新提交</Link> : registration.rosterLocked ? <span className="text-xs font-bold text-amber-200">名单已锁定，当前报名不可修改</span> : <span className="text-xs text-slate-600">报名已关闭或当前状态不可修改</span>}
                 </article>
               ))}
             </div>

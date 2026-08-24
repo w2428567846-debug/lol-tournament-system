@@ -83,7 +83,7 @@ export function TournamentRegistrationForm({
       {!editing && tournament.visibility === 'PRIVATE' ? <label className="sm:col-span-2"><span className="text-xs font-bold text-slate-300">赛事邀请码</span><input className={fieldClass} name="invite_code" required autoComplete="off" placeholder="输入群内公布的邀请码" /><span className="mt-2 block text-[11px] text-slate-600">邀请码只发送至服务器验证，不会保存在浏览器中。</span></label> : null}
       <label className="sm:col-span-2"><span className="text-xs font-bold text-slate-300">给主办方的备注</span><textarea className={`${fieldClass} min-h-28 resize-y`} name="note" maxLength={500} defaultValue={registration?.note ?? ''} placeholder="可填写可参赛时间或其他说明（选填）" /></label>
       {error ? <p role="alert" className="border border-red-300/20 bg-red-300/7 px-4 py-3 text-sm text-red-200 sm:col-span-2">{error}</p> : null}
-      <div className="sm:col-span-2"><button disabled={submitting} className="gold-button min-h-12 px-8 text-sm font-black tracking-[.12em] text-[#080b10] disabled:opacity-60">{submitting ? '保存中…' : resubmitting ? '修改并重新提交' : editing ? '保存报名修改' : '确认提交报名'}</button></div>
+      <div className="sm:col-span-2"><button disabled={submitting} className="gold-button min-h-12 w-full px-8 text-sm font-black tracking-[.12em] text-[#080b10] disabled:cursor-wait disabled:opacity-60 sm:w-auto">{submitting ? '保存中…' : resubmitting ? '修改并重新提交' : editing ? '保存报名修改' : '确认提交报名'}</button></div>
     </form>
   );
 }

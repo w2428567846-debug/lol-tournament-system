@@ -8,6 +8,8 @@ Registration operations and authentication readiness continue in forward migrati
 
 Database correctness continues in forward migration `202608240006_database_correctness_hotfix.sql`. The only historical correction is inside migration 005: its revoke of `handle_new_user_role()` is conditional because migration 002 already drops that function. Without this narrow correction a genuinely fresh 001-to-latest installation cannot reach migration 006. Migrations 001 through 004 remain unchanged.
 
+The final pre-OAuth privacy rule is a forward migration in `202608250007_final_pre_oauth_cleanup.sql`. It does not rewrite migrations 001 through 006.
+
 ## Existing data conversion
 
 - `player_profiles.riot_id` is split at the final `#` into `game_name` and `game_tag`.
@@ -34,7 +36,8 @@ The migration stops if an existing registration cannot be resolved to an account
 - Adds `tournaments.timezone` with `Asia/Shanghai` as the default. The migration preserves every existing absolute `timestamptz` value; it does not guess whether older manually entered values were previously shifted.
 - New admin local times are converted with the tournament IANA timezone before storage. Editing renders the stored instant back into the same timezone.
 - Keeps TEAM/BOTH enum values and legacy rows, but rejects new TEAM/BOTH tournaments and changes into those modes until the future team-registration milestone.
-- Migration 006 replaces the tournament-detail SECURITY DEFINER RPC so anonymous viewers and authenticated nonparticipants receive counts but an empty participant list. Admins and accounts already registered for that tournament receive the participant preview.
+- Migration 006 replaces the tournament-detail SECURITY DEFINER RPC so anonymous viewers and authenticated nonparticipants receive counts but an empty participant list.
+- Migration 007 narrows registered-viewer access: only PENDING, APPROVED, and WAITLISTED registrations remain eligible. REJECTED and CANCELLED accounts receive counts but an empty participant list; application admins retain access.
 
 ## Registration operations behavior
 

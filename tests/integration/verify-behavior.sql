@@ -11,7 +11,11 @@ insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-000000000001', 'wechat-a@example.test'),
   ('00000000-0000-0000-0000-000000000002', 'wechat-b@example.test'),
   ('00000000-0000-0000-0000-000000000003', 'nonparticipant@example.test'),
-  ('00000000-0000-0000-0000-000000000004', 'admin@example.test');
+  ('00000000-0000-0000-0000-000000000004', 'admin@example.test'),
+  ('00000000-0000-0000-0000-000000000005', 'pending@example.test'),
+  ('00000000-0000-0000-0000-000000000006', 'waitlisted@example.test'),
+  ('00000000-0000-0000-0000-000000000007', 'rejected@example.test'),
+  ('00000000-0000-0000-0000-000000000008', 'cancelled@example.test');
 
 update public.accounts
 set role = 'ADMIN'
@@ -221,6 +225,64 @@ select 'registration-response', public.register_for_tournament(
   'secret-code'
 );
 
+-- Build the full private-access status matrix through the production RPC.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000005', false);
+insert into integration_calls (label, payload)
+select 'pending-registration', public.register_for_tournament(
+  '10000000-0000-0000-0000-000000000001',
+  'PendingPlayer', 'P5', 'Gold I', 'TOP', 'MID', 'Pending Group', null, 'secret-code'
+);
+
+-- A player cannot approve their own pending registration.
+do $$
+declare
+  blocked boolean := false;
+begin
+  begin
+    update public.tournament_registrations
+    set status = 'APPROVED'
+    where id = ((select payload ->> 'id' from integration_calls where label = 'pending-registration'))::uuid;
+  exception when others then
+    if sqlerrm <> 'PLAYER_STATUS_CHANGE_FORBIDDEN' then raise; end if;
+    blocked := true;
+  end;
+  if not blocked then raise exception 'player approved their own registration'; end if;
+end
+$$;
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000006', false);
+insert into integration_calls (label, payload)
+select 'waitlisted-registration', public.register_for_tournament(
+  '10000000-0000-0000-0000-000000000001',
+  'WaitlistedPlayer', 'W6', 'Platinum IV', 'JUNGLE', 'SUPPORT', 'Waitlist Group', null, 'secret-code'
+);
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000007', false);
+insert into integration_calls (label, payload)
+select 'rejected-registration', public.register_for_tournament(
+  '10000000-0000-0000-0000-000000000001',
+  'RejectedPlayer', 'R7', 'Silver I', 'ADC', 'MID', 'Rejected Group', null, 'secret-code'
+);
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000008', false);
+insert into integration_calls (label, payload)
+select 'cancelled-registration', public.register_for_tournament(
+  '10000000-0000-0000-0000-000000000001',
+  'CancelledPlayer', 'C8', 'Bronze I', 'SUPPORT', 'TOP', 'Cancelled Group', null, 'secret-code'
+);
+
+update public.tournament_registrations
+set status = 'CANCELLED'
+where id = ((select payload ->> 'id' from integration_calls where label = 'cancelled-registration'))::uuid;
+
+-- Public previews remain visible regardless of registration membership.
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000002', false);
+insert into integration_calls (label, payload)
+select 'public-registration', public.register_for_tournament(
+  '10000000-0000-0000-0000-000000000002',
+  'PublicPlayer', 'PUB', 'Diamond IV', 'MID', null, 'Public Group', null, null
+);
+
 reset role;
 select set_config('request.jwt.claim.sub', '', false);
 
@@ -249,6 +311,18 @@ update public.tournament_registrations
 set status = 'APPROVED', review_note = 'Approved in integration test'
 where id = ((select payload ->> 'id' from integration_calls where label = 'registration-response'))::uuid;
 
+update public.tournament_registrations
+set status = 'WAITLISTED', review_note = 'Waitlisted in integration test'
+where id = ((select payload ->> 'id' from integration_calls where label = 'waitlisted-registration'))::uuid;
+
+update public.tournament_registrations
+set status = 'REJECTED', review_note = 'Rejected in integration test'
+where id = ((select payload ->> 'id' from integration_calls where label = 'rejected-registration'))::uuid;
+
+update public.tournament_registrations
+set status = 'APPROVED', review_note = 'Public approval in integration test'
+where id = ((select payload ->> 'id' from integration_calls where label = 'public-registration'))::uuid;
+
 reset role;
 select set_config('request.jwt.claim.sub', '', false);
 
@@ -258,6 +332,19 @@ insert into integration_calls (label, payload)
 select 'private-anon', public.get_tournament_details('private-integration-cup');
 insert into integration_calls (label, payload)
 select 'public-anon', public.get_tournament_details('public-integration-cup');
+
+do $$
+declare
+  blocked boolean := false;
+begin
+  begin
+    perform public.normalize_game_id_part(' Anonymous Player ', false);
+  exception when insufficient_privilege then
+    blocked := true;
+  end;
+  if not blocked then raise exception 'anonymous game-ID normalization unexpectedly succeeded'; end if;
+end
+$$;
 
 do $$
 declare
@@ -281,6 +368,12 @@ select 'private-nonparticipant', public.get_tournament_details('private-integrat
 
 do $$
 begin
+  if public.normalize_game_id_part('  Player   One  ', false) <> 'player one'
+    or public.normalize_game_id_part(' Tag  Value ', true) <> 'tagvalue'
+  then
+    raise exception 'authenticated game-ID normalization returned an unexpected result';
+  end if;
+
   if (select count(*) from public.tournament_registrations) <> 0 then
     raise exception 'authenticated nonparticipant read private registration rows';
   end if;
@@ -289,15 +382,37 @@ $$;
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', false);
 insert into integration_calls (label, payload)
-select 'private-participant', public.get_tournament_details('private-integration-cup');
+select 'private-approved', public.get_tournament_details('private-integration-cup');
 
 do $$
 begin
   if (select count(*) from public.tournament_registrations) <> 1 then
     raise exception 'registered participant lost access to their own registration';
   end if;
+  if exists (
+    select 1 from public.tournament_registrations
+    where id = ((select payload ->> 'id' from integration_calls where label = 'pending-registration'))::uuid
+  ) then
+    raise exception 'participant read another account registration';
+  end if;
 end
 $$;
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000005', false);
+insert into integration_calls (label, payload)
+select 'private-pending', public.get_tournament_details('private-integration-cup');
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000006', false);
+insert into integration_calls (label, payload)
+select 'private-waitlisted', public.get_tournament_details('private-integration-cup');
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000007', false);
+insert into integration_calls (label, payload)
+select 'private-rejected', public.get_tournament_details('private-integration-cup');
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000008', false);
+insert into integration_calls (label, payload)
+select 'private-cancelled', public.get_tournament_details('private-integration-cup');
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000004', false);
 insert into integration_calls (label, payload)
@@ -316,37 +431,78 @@ declare
   anon_private jsonb;
   public_preview jsonb;
   nonparticipant jsonb;
-  participant jsonb;
+  pending_view jsonb;
+  approved_view jsonb;
+  waitlisted_view jsonb;
+  rejected_view jsonb;
+  cancelled_view jsonb;
   admin_detail jsonb;
   review_metadata jsonb;
   admin_account uuid;
+  detail_response record;
 begin
   select payload into anon_private from integration_calls where label = 'private-anon';
   select payload into public_preview from integration_calls where label = 'public-anon';
   select payload into nonparticipant from integration_calls where label = 'private-nonparticipant';
-  select payload into participant from integration_calls where label = 'private-participant';
+  select payload into pending_view from integration_calls where label = 'private-pending';
+  select payload into approved_view from integration_calls where label = 'private-approved';
+  select payload into waitlisted_view from integration_calls where label = 'private-waitlisted';
+  select payload into rejected_view from integration_calls where label = 'private-rejected';
+  select payload into cancelled_view from integration_calls where label = 'private-cancelled';
   select payload into admin_detail from integration_calls where label = 'private-admin';
   select payload into review_metadata from integration_calls where label = 'admin-review-metadata';
   select id into admin_account from public.accounts where auth_user_id = '00000000-0000-0000-0000-000000000004';
 
+  for detail_response in
+    select label, payload
+    from integration_calls
+    where label in (
+      'private-anon',
+      'private-nonparticipant',
+      'private-pending',
+      'private-approved',
+      'private-waitlisted',
+      'private-rejected',
+      'private-cancelled',
+      'private-admin'
+    )
+  loop
+    if (detail_response.payload ->> 'approved_count')::integer <> 1
+      or (detail_response.payload ->> 'pending_count')::integer <> 1
+      or (detail_response.payload ->> 'waitlisted_count')::integer <> 1
+    then
+      raise exception 'private counts changed for %', detail_response.label;
+    end if;
+  end loop;
+
   if not (anon_private ->> 'participants_restricted')::boolean
     or jsonb_array_length(anon_private -> 'participants') <> 0
-    or (anon_private ->> 'approved_count')::integer <> 1
   then
     raise exception 'anonymous private tournament response is incorrect';
   end if;
 
   if not (nonparticipant ->> 'participants_restricted')::boolean
     or jsonb_array_length(nonparticipant -> 'participants') <> 0
-    or (nonparticipant ->> 'approved_count')::integer <> 1
   then
     raise exception 'authenticated nonparticipant saw private participant data';
   end if;
 
-  if (participant ->> 'participants_restricted')::boolean
-    or jsonb_array_length(participant -> 'participants') <> 1
+  if (pending_view ->> 'participants_restricted')::boolean
+    or jsonb_array_length(pending_view -> 'participants') <> 1
+    or (approved_view ->> 'participants_restricted')::boolean
+    or jsonb_array_length(approved_view -> 'participants') <> 1
+    or (waitlisted_view ->> 'participants_restricted')::boolean
+    or jsonb_array_length(waitlisted_view -> 'participants') <> 1
   then
-    raise exception 'registered participant cannot see private participant data';
+    raise exception 'an active registration cannot see private participant data';
+  end if;
+
+  if not (rejected_view ->> 'participants_restricted')::boolean
+    or jsonb_array_length(rejected_view -> 'participants') <> 0
+    or not (cancelled_view ->> 'participants_restricted')::boolean
+    or jsonb_array_length(cancelled_view -> 'participants') <> 0
+  then
+    raise exception 'an inactive registration retained private participant access';
   end if;
 
   if (admin_detail ->> 'participants_restricted')::boolean
@@ -355,18 +511,30 @@ begin
     raise exception 'admin cannot see private participant data';
   end if;
 
-  if (public_preview ->> 'participants_restricted')::boolean then
+  if (public_preview ->> 'participants_restricted')::boolean
+    or jsonb_array_length(public_preview -> 'participants') <> 1
+    or (public_preview ->> 'approved_count')::integer <> 1
+  then
     raise exception 'public tournament preview was unexpectedly restricted';
   end if;
 
-  if anon_private ? 'created_by'
-    or nonparticipant ? 'created_by'
-    or participant ? 'created_by'
-    or admin_detail ? 'created_by'
-    or public_preview ? 'created_by'
-  then
-    raise exception 'tournament detail response exposed created_by';
-  end if;
+  for detail_response in
+    select label, payload
+    from integration_calls
+    where label like 'private-%' or label = 'public-anon'
+  loop
+    if detail_response.payload ? 'created_by'
+      or detail_response.payload ? 'invite_code'
+      or detail_response.payload ? 'account_id'
+      or detail_response.payload ? 'reviewed_by_account_id'
+      or detail_response.payload ? 'game_name_normalized'
+      or detail_response.payload ? 'game_tag_normalized'
+      or detail_response.payload ? 'wechat_openid'
+      or detail_response.payload ? 'wechat_unionid'
+    then
+      raise exception 'tournament detail response % exposed an internal field', detail_response.label;
+    end if;
+  end loop;
 
   if (review_metadata ->> 'reviewed_by_account_id')::uuid is distinct from admin_account then
     raise exception 'admin review metadata did not preserve reviewer identity';

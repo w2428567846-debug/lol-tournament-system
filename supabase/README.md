@@ -1,7 +1,7 @@
 # Supabase setup
 
 1. Create a Supabase project.
-2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, and 006 is the database-correctness hotfix for fresh installs, cross-app WeChat linking, private participants, safe response shapes, and final privileges.
+2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, 006 is the database-correctness hotfix, and 007 limits private participant previews to admins plus active PENDING/APPROVED/WAITLISTED registrations.
 3. Copy `.env.example` to `.env.local` and add the project URL and publishable/anon key.
 4. For temporary email testing only, set `ENABLE_EMAIL_DEV_AUTH=true`. Leave it unset or `false` in production, and disable the Supabase email provider in the production project.
 5. Create the first development account through `/register`, then promote it in the SQL editor:
@@ -18,7 +18,7 @@ where auth_user_id = (select id from auth.users where email = 'your-email@exampl
 
 - `tournaments.timezone` defaults to the IANA timezone `Asia/Shanghai`; existing `timestamptz` instants are preserved and are not shifted by the migration.
 - Existing TEAM/BOTH rows remain readable and editable without changing their legacy mode. New tournaments and registration-mode changes may only select SOLO until team registration is implemented.
-- Anonymous callers and authenticated nonparticipants receive counts but no participant game IDs for private tournaments. Only application admins and accounts already registered in that tournament receive the participant preview.
+- Counts remain visible for private tournaments. Participant game IDs are visible only to application admins and accounts whose registration in that tournament is PENDING, APPROVED, or WAITLISTED. Anonymous, nonparticipant, REJECTED, and CANCELLED viewers receive an empty participant list.
 - Apply migration 004 before deploying application code that reads `tournaments.timezone`.
 
 ## Registration operations
