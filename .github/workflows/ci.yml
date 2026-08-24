@@ -13,14 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v1
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.19.0
-          cache: pnpm
+          runtime: node@22.19.0
+          cache: true
+          install: false
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
       - run: pnpm exec tsc --noEmit
@@ -44,13 +43,12 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/setup@v1
         with:
           version: 11.19.0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22.19.0
+          runtime: node@22.19.0
+          install: false
       - run: sudo apt-get update
       - run: sudo apt-get install --yes postgresql-client
       - run: pnpm test:integration
