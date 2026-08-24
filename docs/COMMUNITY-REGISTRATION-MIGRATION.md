@@ -4,6 +4,8 @@ Migration `202608240003_community_registration_refactor.sql` is forward-only and
 
 Production hardening continues in forward migration `202608240004_registration_production_hardening.sql`; do not edit or replace the earlier files after they have been applied.
 
+Registration operations and authentication readiness continue in forward migration `202608240005_registration_operations_auth_readiness.sql`.
+
 ## Existing data conversion
 
 - `player_profiles.riot_id` is split at the final `#` into `game_name` and `game_tag`.
@@ -31,3 +33,12 @@ The migration stops if an existing registration cannot be resolved to an account
 - New admin local times are converted with the tournament IANA timezone before storage. Editing renders the stored instant back into the same timezone.
 - Keeps TEAM/BOTH enum values and legacy rows, but rejects new TEAM/BOTH tournaments and changes into those modes until the future team-registration milestone.
 - Replaces the tournament-detail SECURITY DEFINER RPC so anonymous private-link viewers receive counts but an empty participant list. Authenticated users and admins keep the existing participant preview policy.
+
+## Registration operations behavior
+
+- Adds current reviewer, review time, and review note metadata without exposing internal account IDs to player-facing responses.
+- Restricts admin status changes to explicit pending, approved, waitlisted, and rejected transitions; cancelled and rejected rows cannot be silently approved.
+- Allows review during `REGISTRATION_CLOSED`, but blocks every normal review once the roster is locked.
+- Keeps an append-only private status-event table and a safe own-registration history RPC.
+- Allows a rejected player to correct and resubmit only while registration is open.
+- Replaces global OpenID uniqueness with `(app_id, openid)` uniqueness while preserving partial UnionID uniqueness.

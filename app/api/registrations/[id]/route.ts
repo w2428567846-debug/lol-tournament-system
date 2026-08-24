@@ -23,6 +23,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const secondaryRole = secondaryValue ? secondaryValue as PlayerRole : null;
   const groupNickname = String(body.group_nickname ?? '').trim() || null;
   const note = String(body.note ?? '').trim() || null;
+  const resubmit = body.resubmit === true;
 
   if (!gameId || !currentRank || currentRank.length > 40 || !roles.includes(primaryRole) || (secondaryRole && !roles.includes(secondaryRole))) {
     return NextResponse.json({ message: '请填写有效的游戏 ID、段位和位置。' }, { status: 400 });
@@ -41,6 +42,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       secondary_role: secondaryRole,
       group_nickname_snapshot: groupNickname,
       note,
+      ...(resubmit ? { status: 'PENDING' as const } : {}),
     })
     .eq('id', id)
     .select('id, status')

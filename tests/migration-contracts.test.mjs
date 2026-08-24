@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 
 const migration = readFileSync(new URL('../supabase/migrations/202608240003_community_registration_refactor.sql', import.meta.url), 'utf8');
 const hardeningMigration = readFileSync(new URL('../supabase/migrations/202608240004_registration_production_hardening.sql', import.meta.url), 'utf8');
+const operationsMigration = readFileSync(new URL('../supabase/migrations/202608240005_registration_operations_auth_readiness.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -25,10 +26,48 @@ test('roster lock and important edits are enforced by database triggers', () => 
   assert.match(migration, /'REGISTRATION_CLOSED'[\s\S]*'ROSTER_LOCKED'[\s\S]*'TEAM_FORMING'[\s\S]*'SCHEDULED'/);
 });
 
-test('verified WeChat identity identifiers remain private and unique', () => {
-  assert.match(migration, /wechat_identity_openid_unique unique \(openid\)/);
+test('verified WeChat identity identifiers remain private and use final app-scoped uniqueness', () => {
+  assert.match(operationsMigration, /drop constraint wechat_identity_openid_unique/);
+  assert.match(operationsMigration, /wechat_identity_app_openid_unique unique \(app_id, openid\)/);
   assert.match(migration, /wechat_identities_unionid_unique/);
+  assert.match(migration, /where unionid is not null/);
   assert.match(migration, /revoke all on table public\.wechat_identities from anon, authenticated/);
+  assert.match(operationsMigration, /where \(app_id = p_app_id and openid = p_openid\)[\s\S]*unionid = p_unionid/);
+});
+
+test('review metadata, transition rules, audit history, and rejected resubmission are database-enforced', () => {
+  assert.match(operationsMigration, /reviewed_by_account_id uuid references public\.accounts/);
+  assert.match(operationsMigration, /reviewed_at timestamptz/);
+  assert.match(operationsMigration, /review_note text/);
+  assert.match(operationsMigration, /registration_pending_review_metadata_empty/);
+  assert.match(operationsMigration, /create table public\.registration_review_events/);
+  assert.match(operationsMigration, /when 'PENDING' then p_to_status in \('APPROVED', 'WAITLISTED', 'REJECTED'\)/);
+  assert.match(operationsMigration, /when 'WAITLISTED' then p_to_status in \('APPROVED', 'REJECTED'\)/);
+  assert.match(operationsMigration, /tournament_row\.status not in \('REGISTRATION', 'REGISTRATION_CLOSED'\)/);
+  assert.match(operationsMigration, /old\.status = 'REJECTED' and new\.status = 'PENDING'/);
+  assert.match(operationsMigration, /new\.reviewed_by_account_id := null/);
+  assert.match(operationsMigration, /grant execute on function public\.get_my_registration_review_history\(uuid\) to authenticated/);
+  assert.match(operationsMigration, /revoke all on function public\.enforce_registration_insert\(\) from public, anon, authenticated/);
+});
+
+test('roster lock blocks normal admin review while registration-closed allows it', () => {
+  assert.match(operationsMigration, /if public\.is_admin\(\) then[\s\S]*tournament_row\.status not in \('REGISTRATION', 'REGISTRATION_CLOSED'\)[\s\S]*raise exception 'ROSTER_LOCKED'/);
+  assert.doesNotMatch(operationsMigration, /if public\.is_admin\(\) then return new/);
+});
+
+test('every SECURITY DEFINER function pins its search path', () => {
+  const migrationDirectory = new URL('../supabase/migrations/', import.meta.url);
+  for (const file of readdirSync(migrationDirectory).filter((name) => name.endsWith('.sql'))) {
+    const sql = readFileSync(new URL(file, migrationDirectory), 'utf8');
+    const functionStarts = [...sql.matchAll(/create(?: or replace)? function\s+/gi)].map((match) => match.index);
+    for (const match of sql.matchAll(/security definer/gi)) {
+      const start = functionStarts.filter((position) => position < match.index).at(-1);
+      assert.notEqual(start, undefined, `${file}: SECURITY DEFINER must belong to a function`);
+      const bodyStart = sql.indexOf('as $$', match.index);
+      const declaration = sql.slice(start, bodyStart);
+      assert.match(declaration, /set search_path = public, pg_temp/i, `${file}: SECURITY DEFINER function must pin search_path`);
+    }
+  }
 });
 
 test('timezone is explicit and stored tournament instants remain timestamptz', () => {

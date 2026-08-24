@@ -71,7 +71,7 @@ export async function getAdminRegistrations(filters: { tournamentId?: string; st
   if (!supabase) return [] as AdminRegistration[];
   let query = supabase
     .from('tournament_registrations')
-    .select('*, tournaments!inner(id, name, slug)')
+    .select('*, tournaments!inner(id, name, slug, status, timezone)')
     .order('created_at', { ascending: false });
   if (filters.tournamentId) query = query.eq('tournament_id', filters.tournamentId);
   if (filters.status) query = query.eq('status', filters.status);
@@ -83,7 +83,13 @@ export async function getAdminRegistrations(filters: { tournamentId?: string; st
     const tournament = (Array.isArray(tournamentValue) ? tournamentValue[0] : tournamentValue) as Row;
     return {
       ...mapRegistration(row),
-      tournament: { id: String(tournament.id), name: String(tournament.name), slug: String(tournament.slug) },
+      tournament: {
+        id: String(tournament.id),
+        name: String(tournament.name),
+        slug: String(tournament.slug),
+        status: tournament.status as AdminRegistration['tournament']['status'],
+        timezone: String(tournament.timezone ?? 'Asia/Shanghai'),
+      },
     };
   });
 

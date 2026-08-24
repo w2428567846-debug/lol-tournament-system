@@ -4,7 +4,7 @@
 
 ## 已实现
 
-- provider-neutral `accounts` 身份层，微信 OpenID／UnionID 唯一约束
+- provider-neutral `accounts` 身份层，微信 `(app_id, OpenID)` 与可用时的 UnionID 唯一约束
 - 微信 OAuth adapter 边界与服务端账户绑定函数
 - `/login`、`/register` 微信优先界面，以及可选开发邮箱入口
 - `/account` 单一选手档案与我的报名
@@ -18,7 +18,9 @@
 - 私人赛事匿名详情只返回人数，不返回完整参与者游戏 ID
 - 生产环境缺少 Supabase 配置时显示明确的服务设置状态，不使用开发示例冒充真实数据
 - `/admin/tournaments/new`、`/admin/tournaments/[id]/edit` 赛事创建与生命周期操作
-- `/admin/registrations` 搜索、筛选、单笔与批量审核
+- `/admin/registrations` 搜索、筛选、带备注的合法状态转换、单笔与批量审核
+- 首页与赛事列表共用报名窗口状态，赛事筛选可通过 URL 分享
+- 被拒报名可在报名期内修改并重新提交，历史审核事件保留
 - 管理员服务端授权与 Supabase Row Level Security
 - 未完成后台模块使用独立 Coming Soon 路由
 
@@ -42,6 +44,8 @@ pnpm exec tsc --noEmit
 pnpm test:domain
 pnpm build
 ```
+
+真实 PostgreSQL migration 整合检查见 [`docs/INTEGRATION-TESTS.md`](docs/INTEGRATION-TESTS.md)；数据库权限与函数审计见 [`docs/DATABASE-SECURITY.md`](docs/DATABASE-SECURITY.md)。
 
 GitHub Actions 会在提交到 `main` 及 Pull Request 时运行同一组安装、检查、领域测试和生产构建。
 

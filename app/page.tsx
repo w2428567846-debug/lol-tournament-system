@@ -5,13 +5,14 @@ import { TournamentCard } from '@/components/tournament/tournament-card';
 import { SetupRequired } from '@/components/supabase/setup-required';
 import { formatDateTime } from '@/lib/format';
 import { getFeaturedTournament } from '@/lib/tournaments/queries';
-import { tournamentStatusLabels } from '@/lib/tournaments/status';
+import { getTournamentRegistrationPhase, tournamentRegistrationPhaseLabels } from '@/lib/tournaments/domain';
 
 export default async function HomePage() {
   const { tournament, isFallback, configurationMissing } = await getFeaturedTournament();
   if (configurationMissing) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><SetupRequired /><SiteFooter /></main>;
   if (!tournament) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><section className="mx-auto max-w-3xl px-5 py-20 sm:px-8"><p className="text-[10px] font-black uppercase tracking-[.26em] text-[#d8b968]">Tournament service</p><h1 className="mt-3 text-3xl font-black">暂时没有已发布赛事</h1><p className="mt-4 text-sm leading-6 text-slate-400">主办方创建并开放报名后，赛事会显示在这里。</p></section><SiteFooter /></main>;
-  const registrationOpen = tournament.status === 'REGISTRATION';
+  const registrationPhase = getTournamentRegistrationPhase(tournament);
+  const registrationOpen = registrationPhase === 'OPEN';
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080b10] text-white">
@@ -35,7 +36,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid items-center gap-5 border border-white/12 bg-[#080b10]/78 px-5 py-4 shadow-2xl shadow-black/40 backdrop-blur-xl sm:grid-cols-[1.2fr_1fr_1fr] sm:px-7">
-            <div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Registration</p><p className="mt-1 font-black text-white">{registrationOpen ? '报名通道开放' : tournamentStatusLabels[tournament.status]}</p></div>
+            <div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Registration</p><p className="mt-1 font-black text-white">{tournamentRegistrationPhaseLabels[registrationPhase]}</p></div>
             <div className="border-y border-white/10 py-3 sm:border-x sm:border-y-0 sm:px-8 sm:py-0"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">当前申请</p><p className="mt-1 text-sm font-bold text-slate-200"><span className="text-emerald-200">{tournament.approvedCount} 已通过</span> · {tournament.pendingCount} 待审核</p></div>
             <div className="sm:text-right"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">报名截止</p><p className="mt-1 text-sm font-bold text-white">{formatDateTime(tournament.registrationEndAt, tournament.timezone)}</p></div>
           </div>

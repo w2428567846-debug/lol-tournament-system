@@ -138,6 +138,9 @@ export type TournamentRegistration = {
   secondaryRole: PlayerRole | null;
   groupNicknameSnapshot: string | null;
   note: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  reviewerLabel: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -145,8 +148,10 @@ export type TournamentRegistration = {
 export type AccountRegistration = TournamentRegistration & {
   tournament: Pick<Tournament, 'name' | 'slug' | 'startAt' | 'status' | 'timezone' | 'registrationStartAt' | 'registrationEndAt'>;
   canSelfManage: boolean;
+  canResubmit: boolean;
+  rosterLocked: boolean;
 };
 
 export type AdminRegistration = TournamentRegistration & {
-  tournament: Pick<Tournament, 'id' | 'name' | 'slug'>;
+  tournament: Pick<Tournament, 'id' | 'name' | 'slug' | 'status' | 'timezone'>;
 };

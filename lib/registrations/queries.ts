@@ -1,5 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { canPlayerManageRegistration } from '@/lib/tournaments/domain';
+import { canPlayerManageRegistration, canPlayerResubmitRegistration, isRosterFrozen } from '@/lib/tournaments/domain';
 import type { AccountRegistration, PlayerProfile, TournamentRegistration } from '@/types';
 
 type RecordValue = Record<string, unknown>;
@@ -39,6 +39,9 @@ export function mapRegistration(row: RecordValue): TournamentRegistration {
     secondaryRole: (row.secondary_role ?? null) as TournamentRegistration['secondaryRole'],
     groupNicknameSnapshot: row.group_nickname_snapshot == null ? null : String(row.group_nickname_snapshot),
     note: row.note == null ? null : String(row.note),
+    reviewedAt: row.reviewed_at == null ? null : String(row.reviewed_at),
+    reviewNote: row.review_note == null ? null : String(row.review_note),
+    reviewerLabel: row.reviewed_by_account_id == null ? null : '管理员',
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   };
@@ -93,6 +96,13 @@ export async function getAccountOverview(accountId: string) {
         registrationEndAt,
         registrationStatus: mapped.status,
       }, now),
+      canResubmit: canPlayerResubmitRegistration({
+        tournamentStatus: tournament.status as AccountRegistration['tournament']['status'],
+        registrationStartAt,
+        registrationEndAt,
+        registrationStatus: mapped.status,
+      }, now),
+      rosterLocked: isRosterFrozen(tournament.status as AccountRegistration['tournament']['status']),
     };
   });
 

@@ -40,6 +40,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         {params.error === 'admin_required' ? <p className="border border-red-300/20 bg-red-300/7 px-5 py-4 text-sm text-red-200">当前账户没有管理员权限。</p> : null}
         {params.registered ? <p className="border border-emerald-300/20 bg-emerald-300/7 px-5 py-4 text-sm text-emerald-200">报名已提交，主办方审核后会在这里更新状态。</p> : null}
         {params.updated ? <p className="border border-emerald-300/20 bg-emerald-300/7 px-5 py-4 text-sm text-emerald-200">报名资料已更新；如修改了关键资料，状态会回到等待审核。</p> : null}
+        {params.resubmitted ? <p className="border border-emerald-300/20 bg-emerald-300/7 px-5 py-4 text-sm text-emerald-200">报名已修正并重新提交，正在等待管理员再次审核。</p> : null}
 
         <section className="border border-white/9 bg-[#0d1219] p-6 sm:p-8">
           <p className="text-[10px] font-black uppercase tracking-[.25em] text-[#d8b968]">My profile</p>
@@ -59,8 +60,10 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                     <p className="mt-3 text-sm text-slate-300">游戏 ID：<strong className="text-white">{registration.gameId}</strong></p>
                     <p className="mt-1 text-sm text-slate-400">段位：{registration.rankSnapshot} · 位置：<strong className="text-slate-200">{playerRoleLabels[registration.primaryRole]}{registration.secondaryRole ? ` / ${playerRoleLabels[registration.secondaryRole]}` : ''}</strong></p>
                     <p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt, registration.tournament.timezone)}</p>
+                    {registration.reviewedAt ? <p className="mt-2 text-xs text-slate-500">最近审核：{registration.reviewerLabel ?? '管理员'} · {formatDateTime(registration.reviewedAt, registration.tournament.timezone)}</p> : null}
+                    {registration.reviewNote ? <p className="mt-3 border-l-2 border-[#d8b968]/45 pl-3 text-sm leading-6 text-amber-100">管理员反馈：{registration.reviewNote}</p> : null}
                   </div>
-                  {registration.canSelfManage ? <div className="flex items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : <span className="text-xs text-slate-600">报名已关闭或不可修改</span>}
+                  {registration.canSelfManage ? <div className="flex items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : registration.canResubmit ? <Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改并重新提交</Link> : registration.rosterLocked ? <span className="text-xs font-bold text-amber-200">名单已锁定，当前报名不可修改</span> : <span className="text-xs text-slate-600">报名已关闭或当前状态不可修改</span>}
                 </article>
               ))}
             </div>

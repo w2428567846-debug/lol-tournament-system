@@ -5,9 +5,10 @@ import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SetupRequired } from '@/components/supabase/setup-required';
 import { formatDateRange, formatDateTime } from '@/lib/format';
+import { getTournamentRegistrationPhase, tournamentRegistrationPhaseLabels } from '@/lib/tournaments/domain';
 import { getTournamentDetail } from '@/lib/tournaments/queries';
 import { isTournamentRegistrationOpen } from '@/lib/tournaments/registration';
-import { tournamentStatusDescriptions, tournamentStatusLabels } from '@/lib/tournaments/status';
+import { tournamentStatusLabels } from '@/lib/tournaments/status';
 import { tournamentFormatLabels, tournamentRegistrationTypeLabels, tournamentVisibilityLabels } from '@/lib/tournaments/labels';
 import { playerRoleLabels } from '@/lib/registrations/labels';
 
@@ -32,6 +33,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
   if (!tournament) notFound();
 
   const registrationOpen = isTournamentRegistrationOpen(tournament);
+  const registrationPhase = getTournamentRegistrationPhase(tournament);
 
   return (
     <main className="min-h-screen bg-[#080b10] text-white">
@@ -56,8 +58,8 @@ export default async function TournamentDetailPage({ params }: { params: Promise
         <aside>
           <div className="sticky top-6 border border-[#d8b968]/25 bg-[linear-gradient(145deg,rgba(216,185,104,.12),rgba(13,18,25,.98)_52%)] p-6">
             <p className="text-[10px] font-black uppercase tracking-[.25em] text-[#d8b968]">Registration status</p>
-            <h2 className="mt-3 text-2xl font-black">{registrationOpen ? '报名正在进行' : '当前不可报名'}</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-400">{registrationOpen ? (tournament.visibility === 'PRIVATE' ? '这是私人赛事，请准备群内公布的邀请码。' : '登录后直接填写本次赛事资料即可提交。') : tournamentStatusDescriptions[tournament.status]}</p>
+            <h2 className="mt-3 text-2xl font-black">{tournamentRegistrationPhaseLabels[registrationPhase]}</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{registrationOpen ? (tournament.visibility === 'PRIVATE' ? '这是私人赛事，请准备群内公布的邀请码。' : '登录后直接填写本次赛事资料即可提交。') : registrationPhase === 'ROSTER_LOCKED' ? '参赛名单已经冻结，报名和资料修改均已停止。' : '当前报名窗口未开放，请留意主办方公告。'}</p>
             {registrationOpen ? <Link href={`/tournaments/${tournament.slug}/register`} className="gold-button mt-6 flex min-h-12 items-center justify-center px-6 text-sm font-black tracking-[.12em] text-[#080b10]">立即报名 →</Link> : null}
             <Link href="/account" className="mt-3 flex min-h-11 items-center justify-center border border-white/12 text-xs font-bold text-slate-300">查看我的报名</Link>
           </div>
