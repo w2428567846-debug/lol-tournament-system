@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { redirect } from 'next/navigation';
 import { CancelRegistrationButton } from '@/components/account/cancel-registration-button';
 import { ProfileForm } from '@/components/account/profile-form';

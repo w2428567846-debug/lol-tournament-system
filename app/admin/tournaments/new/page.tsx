@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { TournamentForm } from '@/components/admin/tournament-form';
 
 export const metadata: Metadata = { title: '创建赛事' };

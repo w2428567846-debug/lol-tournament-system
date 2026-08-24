@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { formatDateRange } from '@/lib/format';
 import { tournamentStatusLabels } from '@/lib/tournaments/status';
 import { tournamentFormatLabels, tournamentRegistrationTypeLabels } from '@/lib/tournaments/labels';

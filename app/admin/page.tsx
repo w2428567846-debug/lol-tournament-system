@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { getAdminMetrics } from '@/lib/admin/queries';
 
 export const metadata: Metadata = { title: '管理后台' };

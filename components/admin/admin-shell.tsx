@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { AdminNav } from '@/components/admin/admin-nav';
 
 export function AdminShell({ children, configured = true, userLabel }: { children: React.ReactNode; configured?: boolean; userLabel?: string | null }) {

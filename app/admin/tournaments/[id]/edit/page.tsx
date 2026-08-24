@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { notFound } from 'next/navigation';
 import { TournamentForm } from '@/components/admin/tournament-form';
 import { getAdminTournament } from '@/lib/admin/queries';

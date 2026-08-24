@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 
 export function SetupRequired({ compact = false }: { compact?: boolean }) {
   return (

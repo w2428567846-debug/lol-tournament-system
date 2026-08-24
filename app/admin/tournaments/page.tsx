@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { RegistrationShareActions } from '@/components/tournament/registration-share-actions';
 import { formatDateTime } from '@/lib/format';
 import { getAdminTournaments } from '@/lib/admin/queries';

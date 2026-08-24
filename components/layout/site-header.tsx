@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { getViewer } from '@/lib/auth/server';
 
 const navigation = [

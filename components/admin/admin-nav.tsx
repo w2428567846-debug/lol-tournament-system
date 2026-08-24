@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { usePathname } from 'next/navigation';
 
 const adminNav = [

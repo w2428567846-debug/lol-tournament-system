@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 
 export default function ApplicationError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

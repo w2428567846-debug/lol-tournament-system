@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/navigation/safe-link';
 import { AuthForm } from '@/components/auth/auth-form';
 import { WechatLoginPanel } from '@/components/auth/wechat-login-panel';
 import { SiteHeader } from '@/components/layout/site-header';
