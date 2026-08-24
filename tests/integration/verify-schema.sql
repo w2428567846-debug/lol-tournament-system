@@ -3,6 +3,7 @@
 do $$
 declare
   insecure_function text;
+  exposed_trigger_function text;
 begin
   if to_regclass('public.registration_review_events') is null then
     raise exception 'registration_review_events is missing';
@@ -52,10 +53,15 @@ begin
 
   if not exists (
     select 1 from pg_class
-    where oid = 'public.registration_review_events'::regclass
-      and relrowsecurity
+    where oid = 'public.wechat_identities'::regclass and relrowsecurity
+  ) or not exists (
+    select 1 from pg_class
+    where oid = 'public.registration_review_events'::regclass and relrowsecurity
+  ) or not exists (
+    select 1 from pg_class
+    where oid = 'public.tournament_registrations'::regclass and relrowsecurity
   ) then
-    raise exception 'review history RLS is not enabled';
+    raise exception 'RLS is missing from a sensitive identity or registration table';
   end if;
 
   if has_table_privilege('anon', 'public.wechat_identities', 'SELECT')
@@ -68,23 +74,88 @@ begin
     'authenticated',
     'public.upsert_verified_wechat_account(uuid,text,text,text,text,text)',
     'EXECUTE'
+  ) or has_function_privilege(
+    'anon',
+    'public.upsert_verified_wechat_account(uuid,text,text,text,text,text)',
+    'EXECUTE'
+  ) or not has_function_privilege(
+    'service_role',
+    'public.upsert_verified_wechat_account(uuid,text,text,text,text,text)',
+    'EXECUTE'
   ) then
-    raise exception 'trusted WeChat upsert is executable by authenticated users';
+    raise exception 'trusted WeChat upsert privileges are incorrect';
   end if;
 
   if not has_function_privilege(
     'authenticated',
     'public.get_my_registration_review_history(uuid)',
     'EXECUTE'
+  ) or has_function_privilege(
+    'anon',
+    'public.get_my_registration_review_history(uuid)',
+    'EXECUTE'
   ) then
-    raise exception 'safe own-review-history RPC is not executable by authenticated users';
+    raise exception 'safe own-review-history RPC privileges are incorrect';
   end if;
 
-  if has_function_privilege('authenticated', 'public.enforce_registration_insert()', 'EXECUTE')
-    or has_function_privilege('authenticated', 'public.restrict_player_registration_update()', 'EXECUTE')
-    or has_function_privilege('authenticated', 'public.record_registration_review_event()', 'EXECUTE')
+  if not has_function_privilege('anon', 'public.get_tournament_details(text)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.get_tournament_details(text)', 'EXECUTE')
   then
-    raise exception 'trigger-only registration functions are directly executable';
+    raise exception 'safe tournament details RPC is unavailable to intended viewers';
+  end if;
+
+  if has_function_privilege('anon', 'public.register_for_tournament(uuid,text,text,text,public.player_role,public.player_role,text,text,text)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.register_for_tournament(uuid,text,text,text,public.player_role,public.player_role,text,text,text)', 'EXECUTE')
+  then
+    raise exception 'registration RPC privileges are incorrect';
+  end if;
+
+  if has_function_privilege('anon', 'public.get_admin_registration_review_metadata(uuid)', 'EXECUTE')
+    or not has_function_privilege('authenticated', 'public.get_admin_registration_review_metadata(uuid)', 'EXECUTE')
+  then
+    raise exception 'admin review metadata RPC privileges are incorrect';
+  end if;
+
+  if has_column_privilege('authenticated', 'public.tournament_registrations', 'reviewed_by_account_id', 'SELECT')
+    or has_column_privilege('authenticated', 'public.tournament_registrations', 'game_name_normalized', 'SELECT')
+    or has_column_privilege('authenticated', 'public.tournament_registrations', 'game_tag_normalized', 'SELECT')
+  then
+    raise exception 'internal registration columns are readable by authenticated clients';
+  end if;
+
+  if has_column_privilege('anon', 'public.tournaments', 'created_by', 'SELECT')
+    or has_column_privilege('authenticated', 'public.tournaments', 'created_by', 'SELECT')
+    or has_column_privilege('anon', 'public.tournaments', 'invite_code', 'SELECT')
+    or has_column_privilege('authenticated', 'public.tournaments', 'invite_code', 'SELECT')
+  then
+    raise exception 'creator account or invite hash is readable through tournament table privileges';
+  end if;
+
+  if not has_column_privilege('anon', 'public.tournaments', 'id', 'SELECT')
+    or not has_column_privilege('authenticated', 'public.tournaments', 'name', 'SELECT')
+  then
+    raise exception 'safe tournament table reads lost required public columns';
+  end if;
+
+  if not has_column_privilege('authenticated', 'public.tournament_registrations', 'id', 'SELECT')
+    or not has_column_privilege('authenticated', 'public.tournament_registrations', 'account_id', 'SELECT')
+  then
+    raise exception 'safe own/admin registration queries lost required columns';
+  end if;
+
+  select p.oid::regprocedure::text into exposed_trigger_function
+  from pg_proc p
+  join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname = 'public'
+    and p.prorettype = 'trigger'::regtype
+    and (
+      has_function_privilege('anon', p.oid, 'EXECUTE')
+      or has_function_privilege('authenticated', p.oid, 'EXECUTE')
+    )
+  limit 1;
+
+  if exposed_trigger_function is not null then
+    raise exception 'trigger-only function is directly executable by a browser role: %', exposed_trigger_function;
   end if;
 
   select p.oid::regprocedure::text into insecure_function

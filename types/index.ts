@@ -47,7 +47,6 @@ export type Tournament = {
   endAt: string;
   format: 'GROUP' | 'KNOCKOUT' | 'GROUP_KNOCKOUT';
   defaultBestOf: 1 | 3 | 5;
-  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
   rules?: string;
@@ -98,7 +97,6 @@ export type Player = {
 
 export type PlayerProfile = {
   id: string;
-  accountId: string;
   gameName: string;
   gameTag: string;
   gameId: string;
@@ -128,7 +126,6 @@ export type RegistrationStatus = 'PENDING' | 'APPROVED' | 'WAITLISTED' | 'REJECT
 export type TournamentRegistration = {
   id: string;
   tournamentId: string;
-  accountId: string;
   gameName: string;
   gameTag: string;
   gameId: string;

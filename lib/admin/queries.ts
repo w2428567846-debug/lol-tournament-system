@@ -5,6 +5,10 @@ import type { AdminRegistration, PlayerProfile, RegistrationStatus, Tournament }
 
 type Row = Record<string, unknown>;
 
+const ADMIN_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, created_at, updated_at';
+const ADMIN_TOURNAMENT_COLUMNS = 'id, name, slug, description, rules, status, visibility, registration_type, timezone, registration_start_at, registration_end_at, player_limit, team_limit, start_at, end_at, format, default_best_of, created_at, updated_at';
+const ADMIN_PLAYER_COLUMNS = 'id, game_name, game_tag, primary_role, secondary_role, current_rank, group_nickname, bio, created_at, updated_at';
+
 async function adminSupabase() {
   const result = await getAdminClient();
   if ('error' in result) return null;
@@ -16,7 +20,6 @@ function mapProfile(row: Row): PlayerProfile {
   const gameTag = String(row.game_tag);
   return {
     id: String(row.id),
-    accountId: String(row.account_id),
     gameName,
     gameTag,
     gameId: `${gameName}#${gameTag}`,
@@ -45,7 +48,7 @@ export async function getAdminMetrics() {
 export async function getAdminTournaments(): Promise<Tournament[]> {
   const supabase = await adminSupabase();
   if (!supabase) return [];
-  const { data, error } = await supabase.from('tournaments').select('*').order('start_at', { ascending: false });
+  const { data, error } = await supabase.from('tournaments').select(ADMIN_TOURNAMENT_COLUMNS).order('start_at', { ascending: false });
   if (error) throw new Error(`ADMIN_TOURNAMENTS_FAILED:${error.message}`);
   return (data ?? []).map((row) => mapTournament(row));
 }
@@ -53,7 +56,7 @@ export async function getAdminTournaments(): Promise<Tournament[]> {
 export async function getAdminTournament(id: string): Promise<Tournament | null> {
   const supabase = await adminSupabase();
   if (!supabase) return null;
-  const { data, error } = await supabase.from('tournaments').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('tournaments').select(ADMIN_TOURNAMENT_COLUMNS).eq('id', id).maybeSingle();
   if (error) throw new Error(`ADMIN_TOURNAMENT_FAILED:${error.message}`);
   return data ? mapTournament(data) : null;
 }
@@ -61,7 +64,7 @@ export async function getAdminTournament(id: string): Promise<Tournament | null>
 export async function getAdminPlayers(): Promise<PlayerProfile[]> {
   const supabase = await adminSupabase();
   if (!supabase) return [];
-  const { data, error } = await supabase.from('player_profiles').select('*').order('created_at', { ascending: false });
+  const { data, error } = await supabase.from('player_profiles').select(ADMIN_PLAYER_COLUMNS).order('created_at', { ascending: false });
   if (error) throw new Error(`ADMIN_PLAYERS_FAILED:${error.message}`);
   return (data ?? []).map((row) => mapProfile(row));
 }
@@ -71,7 +74,7 @@ export async function getAdminRegistrations(filters: { tournamentId?: string; st
   if (!supabase) return [] as AdminRegistration[];
   let query = supabase
     .from('tournament_registrations')
-    .select('*, tournaments!inner(id, name, slug, status, timezone)')
+    .select(`${ADMIN_REGISTRATION_COLUMNS}, tournaments!inner(id, name, slug, status, timezone)`)
     .order('created_at', { ascending: false });
   if (filters.tournamentId) query = query.eq('tournament_id', filters.tournamentId);
   if (filters.status) query = query.eq('status', filters.status);

@@ -6,6 +6,8 @@ Production hardening continues in forward migration `202608240004_registration_p
 
 Registration operations and authentication readiness continue in forward migration `202608240005_registration_operations_auth_readiness.sql`.
 
+Database correctness continues in forward migration `202608240006_database_correctness_hotfix.sql`. The only historical correction is inside migration 005: its revoke of `handle_new_user_role()` is conditional because migration 002 already drops that function. Without this narrow correction a genuinely fresh 001-to-latest installation cannot reach migration 006. Migrations 001 through 004 remain unchanged.
+
 ## Existing data conversion
 
 - `player_profiles.riot_id` is split at the final `#` into `game_name` and `game_tag`.
@@ -32,7 +34,7 @@ The migration stops if an existing registration cannot be resolved to an account
 - Adds `tournaments.timezone` with `Asia/Shanghai` as the default. The migration preserves every existing absolute `timestamptz` value; it does not guess whether older manually entered values were previously shifted.
 - New admin local times are converted with the tournament IANA timezone before storage. Editing renders the stored instant back into the same timezone.
 - Keeps TEAM/BOTH enum values and legacy rows, but rejects new TEAM/BOTH tournaments and changes into those modes until the future team-registration milestone.
-- Replaces the tournament-detail SECURITY DEFINER RPC so anonymous private-link viewers receive counts but an empty participant list. Authenticated users and admins keep the existing participant preview policy.
+- Migration 006 replaces the tournament-detail SECURITY DEFINER RPC so anonymous viewers and authenticated nonparticipants receive counts but an empty participant list. Admins and accounts already registered for that tournament receive the participant preview.
 
 ## Registration operations behavior
 
@@ -42,3 +44,10 @@ The migration stops if an existing registration cannot be resolved to an account
 - Keeps an append-only private status-event table and a safe own-registration history RPC.
 - Allows a rejected player to correct and resubmit only while registration is open.
 - Replaces global OpenID uniqueness with `(app_id, openid)` uniqueness while preserving partial UnionID uniqueness.
+
+## Database correctness hotfix behavior
+
+- Resolves a verified UnionID across approved WeChat applications to one account and persists the second app-scoped OpenID. Later login through that second app works even when UnionID is absent.
+- Stores the shared UnionID once on its canonical identity row so partial UnionID uniqueness remains meaningful; all provider rows still point to the same account.
+- Removes `created_by`, account UUIDs, normalized duplicate-check values, and reviewer UUIDs from player/public response shapes.
+- Replaces inherited default function grants with an explicit RPC allowlist and removes browser execution from trigger-only functions.

@@ -20,7 +20,6 @@ export function mapTournament(row: TournamentRecord): Tournament {
     endAt: String(row.end_at),
     format: row.format as Tournament['format'],
     defaultBestOf: Number(row.default_best_of) as Tournament['defaultBestOf'],
-    createdBy: row.created_by == null ? null : String(row.created_by),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
     rules: row.rules == null ? undefined : String(row.rules),

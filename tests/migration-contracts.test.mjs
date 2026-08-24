@@ -5,6 +5,7 @@ import test from 'node:test';
 const migration = readFileSync(new URL('../supabase/migrations/202608240003_community_registration_refactor.sql', import.meta.url), 'utf8');
 const hardeningMigration = readFileSync(new URL('../supabase/migrations/202608240004_registration_production_hardening.sql', import.meta.url), 'utf8');
 const operationsMigration = readFileSync(new URL('../supabase/migrations/202608240005_registration_operations_auth_readiness.sql', import.meta.url), 'utf8');
+const correctnessMigration = readFileSync(new URL('../supabase/migrations/202608240006_database_correctness_hotfix.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -32,7 +33,8 @@ test('verified WeChat identity identifiers remain private and use final app-scop
   assert.match(migration, /wechat_identities_unionid_unique/);
   assert.match(migration, /where unionid is not null/);
   assert.match(migration, /revoke all on table public\.wechat_identities from anon, authenticated/);
-  assert.match(operationsMigration, /where \(app_id = p_app_id and openid = p_openid\)[\s\S]*unionid = p_unionid/);
+  assert.match(correctnessMigration, /where app_id = p_app_id and openid = p_openid[\s\S]*where unionid = p_unionid/);
+  assert.match(correctnessMigration, /inserted_unionid := case when union_identity\.id is null then p_unionid else null end/);
 });
 
 test('review metadata, transition rules, audit history, and rejected resubmission are database-enforced', () => {
@@ -84,9 +86,18 @@ test('new tournament modes and registrations are SOLO-only without deleting lega
 });
 
 test('private anonymous tournament detail withholds participant rows but keeps counts', () => {
-  assert.match(hardeningMigration, /participants_restricted := tournament_row\.visibility = 'PRIVATE'[\s\S]*auth\.uid\(\) is null/);
-  assert.match(hardeningMigration, /if not participants_restricted then[\s\S]*registration\.game_name/);
-  assert.match(hardeningMigration, /'approved_count', approved_total/);
-  assert.match(hardeningMigration, /'participants_restricted', participants_restricted/);
-  assert.doesNotMatch(hardeningMigration, /wechat_(openid|unionid)/);
+  assert.match(correctnessMigration, /participants_restricted := tournament_row\.visibility = 'PRIVATE'[\s\S]*viewer_account_id is null[\s\S]*account_id = viewer_account_id/);
+  assert.match(correctnessMigration, /if not participants_restricted then[\s\S]*registration\.game_name/);
+  assert.match(correctnessMigration, /'approved_count', approved_total/);
+  assert.match(correctnessMigration, /'participants_restricted', participants_restricted/);
+  assert.doesNotMatch(correctnessMigration, /'created_by'/);
+  assert.doesNotMatch(correctnessMigration, /wechat_(openid|unionid)'/);
+});
+
+test('fresh-chain privilege hardening tolerates the legacy trigger function already being dropped', () => {
+  assert.match(operationsMigration, /to_regprocedure\('public\.handle_new_user_role\(\)'\) is not null/);
+  assert.match(correctnessMigration, /revoke all on function public\.upsert_verified_wechat_account[\s\S]*from public, anon, authenticated, service_role/);
+  assert.match(correctnessMigration, /revoke select on table public\.tournaments from anon, authenticated/);
+  assert.match(correctnessMigration, /revoke select on table public\.tournament_registrations from authenticated/);
+  assert.match(correctnessMigration, /get_admin_registration_review_metadata/);
 });

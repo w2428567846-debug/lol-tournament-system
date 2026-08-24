@@ -4,12 +4,14 @@ import type { AccountRegistration, PlayerProfile, TournamentRegistration } from 
 
 type RecordValue = Record<string, unknown>;
 
+const PLAYER_PROFILE_COLUMNS = 'id, game_name, game_tag, primary_role, secondary_role, current_rank, group_nickname, bio, created_at, updated_at';
+const PLAYER_REGISTRATION_COLUMNS = 'id, tournament_id, game_name, game_tag, rank_snapshot, status, primary_role, secondary_role, group_nickname_snapshot, note, reviewed_at, review_note, created_at, updated_at';
+
 function mapProfile(row: RecordValue): PlayerProfile {
   const gameName = String(row.game_name);
   const gameTag = String(row.game_tag);
   return {
     id: String(row.id),
-    accountId: String(row.account_id),
     gameName,
     gameTag,
     gameId: `${gameName}#${gameTag}`,
@@ -29,7 +31,6 @@ export function mapRegistration(row: RecordValue): TournamentRegistration {
   return {
     id: String(row.id),
     tournamentId: String(row.tournament_id),
-    accountId: String(row.account_id),
     gameName,
     gameTag,
     gameId: `${gameName}#${gameTag}`,
@@ -41,7 +42,7 @@ export function mapRegistration(row: RecordValue): TournamentRegistration {
     note: row.note == null ? null : String(row.note),
     reviewedAt: row.reviewed_at == null ? null : String(row.reviewed_at),
     reviewNote: row.review_note == null ? null : String(row.review_note),
-    reviewerLabel: row.reviewed_by_account_id == null ? null : '管理员',
+    reviewerLabel: row.reviewed_at == null ? null : '管理员',
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at),
   };
@@ -51,7 +52,7 @@ export async function getSavedProfile(accountId: string) {
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from('player_profiles')
-    .select('*')
+    .select(PLAYER_PROFILE_COLUMNS)
     .eq('account_id', accountId)
     .maybeSingle();
   if (error) throw new Error(`PROFILE_LOAD_FAILED:${error.message}`);
@@ -61,10 +62,10 @@ export async function getSavedProfile(accountId: string) {
 export async function getAccountOverview(accountId: string) {
   const supabase = await createServerSupabaseClient();
   const [profileResult, registrationsResult] = await Promise.all([
-    supabase.from('player_profiles').select('*').eq('account_id', accountId).maybeSingle(),
+    supabase.from('player_profiles').select(PLAYER_PROFILE_COLUMNS).eq('account_id', accountId).maybeSingle(),
     supabase
       .from('tournament_registrations')
-      .select('*, tournaments!inner(name, slug, start_at, status, timezone, registration_start_at, registration_end_at)')
+      .select(`${PLAYER_REGISTRATION_COLUMNS}, tournaments!inner(name, slug, start_at, status, timezone, registration_start_at, registration_end_at)`)
       .eq('account_id', accountId)
       .order('created_at', { ascending: false }),
   ]);
@@ -116,7 +117,7 @@ export async function getAccountTournamentRegistration(accountId: string, tourna
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from('tournament_registrations')
-    .select('*')
+    .select(PLAYER_REGISTRATION_COLUMNS)
     .eq('account_id', accountId)
     .eq('tournament_id', tournamentId)
     .maybeSingle();

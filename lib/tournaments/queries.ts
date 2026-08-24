@@ -5,6 +5,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { mapTournament, mapTournamentDetail } from '@/lib/tournaments/mapper';
 import type { Tournament, TournamentDetail } from '@/types';
 
+const PUBLIC_TOURNAMENT_COLUMNS = 'id, name, slug, description, rules, status, visibility, registration_type, timezone, registration_start_at, registration_end_at, player_limit, team_limit, start_at, end_at, format, default_best_of, created_at, updated_at';
+
 export async function listTournaments(): Promise<{ tournaments: Tournament[]; isFallback: boolean; configurationMissing: boolean }> {
   if (!isSupabaseConfigured()) {
     return canUseDevelopmentFallback()
@@ -15,7 +17,7 @@ export async function listTournaments(): Promise<{ tournaments: Tournament[]; is
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase
     .from('tournaments')
-    .select('*')
+    .select(PUBLIC_TOURNAMENT_COLUMNS)
     .neq('status', 'DRAFT')
     .eq('visibility', 'PUBLIC')
     .order('start_at', { ascending: true });

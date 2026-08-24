@@ -1,7 +1,7 @@
 # Supabase setup
 
 1. Create a Supabase project.
-2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds production privacy and timezone hardening, and 005 adds review operations, audit history, rejected resubmission, and final WeChat identity constraints.
+2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, and 006 is the database-correctness hotfix for fresh installs, cross-app WeChat linking, private participants, safe response shapes, and final privileges.
 3. Copy `.env.example` to `.env.local` and add the project URL and publishable/anon key.
 4. For temporary email testing only, set `ENABLE_EMAIL_DEV_AUTH=true`. Leave it unset or `false` in production, and disable the Supabase email provider in the production project.
 5. Create the first development account through `/register`, then promote it in the SQL editor:
@@ -18,7 +18,7 @@ where auth_user_id = (select id from auth.users where email = 'your-email@exampl
 
 - `tournaments.timezone` defaults to the IANA timezone `Asia/Shanghai`; existing `timestamptz` instants are preserved and are not shifted by the migration.
 - Existing TEAM/BOTH rows remain readable and editable without changing their legacy mode. New tournaments and registration-mode changes may only select SOLO until team registration is implemented.
-- Anonymous callers of the SECURITY DEFINER tournament-detail RPC still receive public counts for private link tournaments, but participant game IDs are returned only to authenticated users or admins.
+- Anonymous callers and authenticated nonparticipants receive counts but no participant game IDs for private tournaments. Only application admins and accounts already registered in that tournament receive the participant preview.
 - Apply migration 004 before deploying application code that reads `tournaments.timezone`.
 
 ## Registration operations
@@ -30,7 +30,7 @@ where auth_user_id = (select id from auth.users where email = 'your-email@exampl
 
 ## WeChat identity
 
-- `wechat_identities` enforces unique `(app_id, openid)` pairs and a unique UnionID when present. OpenID is application-scoped; UnionID is the cross-application key when WeChat supplies it.
+- `wechat_identities` enforces unique `(app_id, openid)` pairs and a unique UnionID when present. OpenID is application-scoped; UnionID is the cross-application key when WeChat supplies it. A shared UnionID is stored once on its canonical identity row, while every verified app-scoped OpenID row is retained on the same account.
 - These values must come only from a verified WeChat OAuth response, never a player form.
 - Browser roles cannot select any row from `wechat_identities`; only a safe current-account summary is exposed.
 - `upsert_verified_wechat_account(...)` is granted only to Supabase `service_role` for a future trusted OAuth callback service. A service-role key must never be sent to the browser or stored in a `NEXT_PUBLIC_` variable.

@@ -26,3 +26,34 @@ jobs:
       - run: pnpm exec tsc --noEmit
       - run: pnpm test:domain
       - run: pnpm build
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: rift_command_test
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d rift_command_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.19.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.19.0
+      - run: sudo apt-get update
+      - run: sudo apt-get install --yes postgresql-client
+      - run: pnpm test:integration
+        env:
+          SUPABASE_TEST_DB_URL: postgresql://postgres:postgres@127.0.0.1:5432/rift_command_test
+          RIFT_TEST_BOOTSTRAP: '1'

@@ -347,7 +347,15 @@ $$;
 
 revoke all on function public.is_admin_review_transition_allowed(public.registration_status, public.registration_status) from public, anon, authenticated;
 revoke all on function public.set_updated_at() from public, anon, authenticated;
-revoke all on function public.handle_new_user_role() from public, anon, authenticated;
+do $$
+begin
+  -- Migration 002 drops this legacy trigger function. Keep the hardening safe for
+  -- databases that retained it without making the fresh 001 -> 005 chain fail.
+  if to_regprocedure('public.handle_new_user_role()') is not null then
+    execute 'revoke all on function public.handle_new_user_role() from public, anon, authenticated';
+  end if;
+end;
+$$;
 revoke all on function public.handle_new_auth_user_account() from public, anon, authenticated;
 revoke all on function public.hash_tournament_invite_code() from public, anon, authenticated;
 revoke all on function public.enforce_tournament_status_transition() from public, anon, authenticated;

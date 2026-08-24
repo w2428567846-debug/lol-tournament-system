@@ -49,3 +49,4 @@ function runSql(file) {
 if (process.env.RIFT_TEST_BOOTSTRAP === '1') runSql(`${integrationDirectory}bootstrap.sql`);
 for (const migration of migrations) runSql(`${migrationDirectory}${migration}`);
 runSql(`${integrationDirectory}verify-schema.sql`);
+runSql(`${integrationDirectory}verify-behavior.sql`);

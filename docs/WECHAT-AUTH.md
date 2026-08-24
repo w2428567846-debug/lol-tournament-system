@@ -28,7 +28,7 @@ WeChat is the long-term primary identity for Rift Command. Email/password exists
 6. Call the server-only `upsert_verified_wechat_account(...)` database function with the verified application ID, OpenID and optional UnionID.
 7. Issue the normal secure application session and redirect to the original same-origin path.
 
-The unique `(app_id, OpenID)` constraint and partial unique UnionID constraint, plus the linking function's conflict checks, prevent an already-linked WeChat identity from silently creating another Rift Command account. OpenID is scoped to a WeChat application; UnionID is used for cross-application resolution when present. Conflicting email-development and WeChat accounts are never silently merged into separate accounts.
+The unique `(app_id, OpenID)` constraint and partial unique UnionID constraint, plus the linking function's conflict checks, prevent an already-linked WeChat identity from silently creating another Rift Command account. OpenID is scoped to a WeChat application; UnionID is used for cross-application resolution when present. The canonical provider row stores the shared UnionID once, while each additional app persists its own `(app_id, OpenID)` row against the same account. A later login can therefore resolve from that exact app/OpenID even when WeChat omits UnionID. Conflicting email-development and WeChat accounts are never silently merged into separate accounts.
 
 ## Provider boundary
 

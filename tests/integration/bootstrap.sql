@@ -43,3 +43,12 @@ $$;
 grant usage on schema auth to anon, authenticated, service_role;
 grant select on table auth.users to service_role;
 grant execute on function auth.uid() to anon, authenticated, service_role;
+
+-- Supabase grants its API roles broad object privileges and relies on RLS plus
+-- explicit routine hardening for the security boundary. Reproduce those
+-- defaults so the integration suite catches grants that a bare PostgreSQL
+-- database would otherwise hide.
+grant usage on schema public to anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
