@@ -25,16 +25,9 @@ function mapAccount(row: AccountRow): Account {
 }
 
 async function loadAccount(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
-  const { data: accountId, error: accountIdError } = await supabase.rpc('current_account_id');
-  if (accountIdError || !accountId) return null;
-
-  const { data, error } = await supabase
-    .from('accounts')
-    .select('id, auth_provider, role, wechat_nickname, wechat_avatar_url, created_at, updated_at')
-    .eq('id', accountId)
-    .maybeSingle();
+  const { data, error } = await supabase.rpc('current_account_summary');
   if (error || !data) return null;
-  return mapAccount(data);
+  return mapAccount(data as AccountRow);
 }
 
 export async function getViewer(): Promise<Viewer> {

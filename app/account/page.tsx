@@ -38,11 +38,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
       <div className="mx-auto max-w-7xl space-y-10 px-5 py-12 sm:px-8 lg:px-10">
         {params.error === 'admin_required' ? <p className="border border-red-300/20 bg-red-300/7 px-5 py-4 text-sm text-red-200">当前账户没有管理员权限。</p> : null}
         {params.registered ? <p className="border border-emerald-300/20 bg-emerald-300/7 px-5 py-4 text-sm text-emerald-200">报名已提交，主办方审核后会在这里更新状态。</p> : null}
+        {params.updated ? <p className="border border-emerald-300/20 bg-emerald-300/7 px-5 py-4 text-sm text-emerald-200">报名资料已更新；如修改了关键资料，状态会回到等待审核。</p> : null}
 
         <section className="border border-white/9 bg-[#0d1219] p-6 sm:p-8">
           <p className="text-[10px] font-black uppercase tracking-[.25em] text-[#d8b968]">My profile</p>
-          <h2 className="mt-2 text-2xl font-black">我的选手档案</h2>
-          <p className="mt-2 text-sm text-slate-500">报名表会自动使用这里保存的位置与 Riot ID。</p>
+          <h2 className="mt-2 text-2xl font-black">常用报名资料</h2>
+          <p className="mt-2 text-sm text-slate-500">这是可选的预填资料，不会阻挡首次报名，也不会改写已提交的赛事记录。</p>
           <ProfileForm profile={profile} />
         </section>
 
@@ -54,10 +55,11 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                 <article key={registration.id} className="grid gap-5 border border-white/9 bg-[#0d1219] p-5 sm:grid-cols-[1fr_auto] sm:items-center sm:p-6">
                   <div>
                     <div className="flex flex-wrap items-center gap-3"><Link href={`/tournaments/${registration.tournament.slug}`} className="text-lg font-black text-white hover:text-[#d8b968]">{registration.tournament.name}</Link><StatusBadge status={registration.status} /></div>
-                    <p className="mt-3 text-sm text-slate-400">位置：<strong className="text-slate-200">{registration.preferredRole}{registration.secondaryRole ? ` / ${registration.secondaryRole}` : ''}</strong></p>
+                    <p className="mt-3 text-sm text-slate-300">游戏 ID：<strong className="text-white">{registration.gameId}</strong></p>
+                    <p className="mt-1 text-sm text-slate-400">段位：{registration.rankSnapshot} · 位置：<strong className="text-slate-200">{registration.primaryRole}{registration.secondaryRole ? ` / ${registration.secondaryRole}` : ''}</strong></p>
                     <p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt)}</p>
                   </div>
-                  {['PENDING', 'APPROVED', 'WAITLISTED'].includes(registration.status) ? <CancelRegistrationButton registrationId={registration.id} /> : null}
+                  {registration.canSelfManage ? <div className="flex items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : <span className="text-xs text-slate-600">报名已关闭或不可修改</span>}
                 </article>
               ))}
             </div>

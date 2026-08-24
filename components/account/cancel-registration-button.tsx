@@ -11,7 +11,10 @@ export function CancelRegistrationButton({ registrationId }: { registrationId: s
     if (!window.confirm('确定取消这次报名吗？取消后不能自行恢复。')) return;
     setSubmitting(true);
     const response = await fetch(`/api/registrations/${registrationId}/cancel`, { method: 'PATCH' });
-    if (!response.ok) window.alert('取消失败，请刷新页面后重试。');
+    if (!response.ok) {
+      const result = await response.json() as { message?: string };
+      window.alert(result.message ?? '取消失败，请刷新页面后重试。');
+    }
     router.refresh();
     setSubmitting(false);
   }

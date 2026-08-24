@@ -4,10 +4,8 @@ import { getViewer } from '@/lib/auth/server';
 const navigation = [
   { label: '首页', href: '/' },
   { label: '赛事', href: '/tournaments' },
-  { label: '战队', href: '/teams' },
-  { label: '选手', href: '/players' },
-  { label: '赛程', href: '/#matches' },
-  { label: '排行榜', href: '/#standings' },
+  { label: '报名说明', href: '/players' },
+  { label: '我的报名', href: '/account' },
 ];
 
 export async function SiteHeader() {

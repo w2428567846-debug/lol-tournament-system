@@ -9,10 +9,12 @@
 - `/login`、`/register` 微信优先界面，以及可选开发邮箱入口
 - `/account` 单一选手档案与我的报名
 - `/tournaments/[slug]` 数据库赛事详情与参与者预览
-- `/tournaments/[slug]/register` SOLO 个人报名
+- `/tournaments/[slug]/register` 无需预建档案的游戏 ID 直接报名与修改
+- 每次报名保存游戏 ID、段位、位置与群昵称快照
 - 私人赛事邀请码在 PostgreSQL 服务端验证
-- 重复报名唯一约束、报名时段与名额检查
-- `/admin/tournaments`、`/admin/players`、`/admin/registrations`
+- 账户与游戏 ID 双重防重复、名单锁定与数据库审批容量限制
+- `/admin/tournaments/new`、`/admin/tournaments/[id]/edit` 赛事创建与生命周期操作
+- `/admin/registrations` 搜索、筛选、单笔与批量审核
 - 管理员服务端授权与 Supabase Row Level Security
 - 未完成后台模块使用独立 Coming Soon 路由
 
@@ -38,4 +40,4 @@ pnpm build
 
 ## 暂未实现
 
-自动赛程、积分计算、比赛结果、淘汰赛晋级、Riot API、BP 与实时比赛数据均不在 Phase 2 范围内。
+队伍分配、自动赛程、积分计算、比赛结果、淘汰赛晋级、账号绑定、BP 与实时比赛数据均不在当前范围内。

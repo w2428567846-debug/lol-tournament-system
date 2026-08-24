@@ -6,13 +6,8 @@ import { usePathname } from 'next/navigation';
 const adminNav = [
   ['/admin', 'OV', '总览'],
   ['/admin/tournaments', 'TR', '赛事管理'],
-  ['/admin/players', 'PL', '选手管理'],
+  ['/admin/players', 'PL', '常用资料'],
   ['/admin/registrations', 'RG', '报名审核'],
-  ['/admin/teams', 'TM', '战队管理'],
-  ['/admin/groups', 'GP', '小组管理'],
-  ['/admin/matches', 'MT', '比赛管理'],
-  ['/admin/brackets', 'BR', '淘汰赛管理'],
-  ['/admin/announcements', 'AN', '公告管理'],
 ];
 
 export function AdminNav() {

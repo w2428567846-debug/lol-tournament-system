@@ -6,6 +6,7 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { formatDateRange, formatDateTime } from '@/lib/format';
 import { getTournamentDetail } from '@/lib/tournaments/queries';
 import { isTournamentRegistrationOpen } from '@/lib/tournaments/registration';
+import { tournamentStatusDescriptions, tournamentStatusLabels } from '@/lib/tournaments/status';
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -33,7 +34,7 @@ export default async function TournamentDetailPage({ params }: { params: Promise
       <section className="relative overflow-hidden border-b border-white/8 bg-[#0a0e14]">
         <div className="hero-grid absolute inset-0 opacity-20" />
         <div className="relative mx-auto max-w-7xl px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
-          <div className="flex flex-wrap items-center gap-3"><span className="bg-emerald-300/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em] text-emerald-200">{tournament.status}</span><span className="border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.18em] text-slate-500">{tournament.visibility}</span><span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#d8b968]">{tournament.registrationType}</span></div>
+          <div className="flex flex-wrap items-center gap-3"><span className="bg-emerald-300/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[.18em] text-emerald-200">{tournamentStatusLabels[tournament.status]}</span><span className="border border-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.18em] text-slate-500">{tournament.visibility}</span><span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#d8b968]">{tournament.registrationType}</span></div>
           <h1 className="mt-5 max-w-4xl text-4xl font-black tracking-[-.05em] sm:text-6xl">{tournament.name}</h1>
           <p className="mt-5 max-w-3xl text-base leading-7 text-slate-400">{tournament.description}</p>
           <div className="mt-8 flex flex-wrap gap-7 text-sm"><Info label="比赛日期" value={formatDateRange(tournament.startAt, tournament.endAt)} /><Info label="赛制" value={`${tournament.format} · BO${tournament.defaultBestOf}`} /><Info label="选手上限" value={tournament.playerLimit ? `${tournament.playerLimit} 人` : '未限制'} /></div>
@@ -43,15 +44,15 @@ export default async function TournamentDetailPage({ params }: { params: Promise
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_360px] lg:px-10">
         <div className="space-y-10">
           {isFallback ? <p className="border border-amber-300/20 bg-amber-300/6 px-5 py-4 text-sm text-amber-100">当前为开发示例。连接 Supabase 后，这里会显示真实报名数量与参与者。</p> : null}
-          <section><SectionTitle eyebrow="Registration" title="报名信息" /><div className="mt-5 grid gap-3 sm:grid-cols-3"><Metric value={String(tournament.approvedCount)} label="已通过" /><Metric value={String(tournament.pendingCount)} label="待审核" /><Metric value={tournament.playerLimit ? String(tournament.playerLimit) : '∞'} label="名额上限" /></div><p className="mt-5 text-sm leading-6 text-slate-500">报名时间：{formatDateTime(tournament.registrationStartAt)} — {formatDateTime(tournament.registrationEndAt)}</p></section>
+          <section><SectionTitle eyebrow="Registration" title="报名信息" /><div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><Metric value={String(tournament.approvedCount)} label="已通过" /><Metric value={String(tournament.pendingCount)} label="待审核" /><Metric value={String(tournament.waitlistedCount)} label="候补" /><Metric value={tournament.playerLimit ? String(tournament.playerLimit) : '∞'} label="正式名额" /></div><p className="mt-5 text-sm leading-6 text-slate-500">报名时间：{formatDateTime(tournament.registrationStartAt)} — {formatDateTime(tournament.registrationEndAt)}</p></section>
           <section><SectionTitle eyebrow="Rules" title="赛事规则" /><div className="mt-5 whitespace-pre-line border border-white/9 bg-[#0d1219] p-6 text-sm leading-7 text-slate-400">{tournament.rules || '请遵守社区赛事公告与主办方临场安排。'}</div></section>
-          <section><SectionTitle eyebrow="Participants" title="参与者预览" />{tournament.participants.length === 0 ? <div className="mt-5 border border-dashed border-white/12 p-7 text-sm text-slate-600">暂未公布已通过选手。</div> : <div className="mt-5 grid gap-3 sm:grid-cols-2">{tournament.participants.map((participant) => <article key={`${participant.displayName}-${participant.primaryRole}`} className="border border-white/9 bg-[#0d1219] p-5"><p className="font-black text-white">{participant.displayName}</p><p className="mt-2 text-xs text-slate-500">{participant.primaryRole} · {participant.rank}</p></article>)}</div>}</section>
+          <section><SectionTitle eyebrow="Participants" title="参与者预览" />{tournament.participants.length === 0 ? <div className="mt-5 border border-dashed border-white/12 p-7 text-sm text-slate-600">暂未公布已通过选手。</div> : <div className="mt-5 grid gap-3 sm:grid-cols-2">{tournament.participants.map((participant) => <article key={`${participant.gameId}-${participant.primaryRole}`} className="border border-white/9 bg-[#0d1219] p-5"><p className="font-black text-white">{participant.gameId}</p><p className="mt-2 text-xs text-slate-500">{participant.primaryRole} · {participant.rank}</p></article>)}</div>}</section>
         </div>
         <aside>
           <div className="sticky top-6 border border-[#d8b968]/25 bg-[linear-gradient(145deg,rgba(216,185,104,.12),rgba(13,18,25,.98)_52%)] p-6">
             <p className="text-[10px] font-black uppercase tracking-[.25em] text-[#d8b968]">Registration status</p>
             <h2 className="mt-3 text-2xl font-black">{registrationOpen ? '报名正在进行' : '当前不可报名'}</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-400">{registrationOpen ? (tournament.visibility === 'PRIVATE' ? '这是私人赛事，请准备群内公布的邀请码。' : '登录并确认选手资料后即可提交报名。') : '报名尚未开始或已经结束。'}</p>
+            <p className="mt-3 text-sm leading-6 text-slate-400">{registrationOpen ? (tournament.visibility === 'PRIVATE' ? '这是私人赛事，请准备群内公布的邀请码。' : '登录后直接填写本次赛事资料即可提交。') : tournamentStatusDescriptions[tournament.status]}</p>
             {registrationOpen ? <Link href={`/tournaments/${tournament.slug}/register`} className="gold-button mt-6 flex min-h-12 items-center justify-center px-6 text-sm font-black tracking-[.12em] text-[#080b10]">立即报名 →</Link> : null}
             <Link href="/account" className="mt-3 flex min-h-11 items-center justify-center border border-white/12 text-xs font-bold text-slate-300">查看我的报名</Link>
           </div>

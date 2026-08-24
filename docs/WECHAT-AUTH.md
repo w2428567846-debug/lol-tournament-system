@@ -4,15 +4,19 @@ WeChat is the long-term primary identity for Rift Command. Email/password exists
 
 ## Domain separation
 
-`accounts` owns private provider identity and authorization:
+`accounts` is the provider-neutral authorization and business identity:
 
 - `auth_provider`
-- verified `wechat_openid`
-- verified `wechat_unionid`, when available
-- WeChat display metadata
 - application role
 
-`player_profiles` owns League of Legends data and references `accounts.id` through `account_id`. It never stores OpenID, UnionID, email, or an authentication-provider subject.
+`wechat_identities` owns the private verified provider identity:
+
+- WeChat application ID
+- verified OpenID
+- verified UnionID, when available
+- WeChat display metadata
+
+`player_profiles` is optional saved registration defaults. Tournament registrations reference `accounts.id` and keep their own game ID, rank, role and group-nickname snapshots. None of these business tables stores OpenID, UnionID, email, or an authentication-provider subject.
 
 ## Required production flow
 
@@ -21,10 +25,10 @@ WeChat is the long-term primary identity for Rift Command. Email/password exists
 3. In the trusted callback, verify state and exchange the one-time code with WeChat using server-only credentials.
 4. Accept OpenID and UnionID only from that verified provider response.
 5. Create or resolve the corresponding Supabase Auth session identity in a trusted backend.
-6. Call the server-only `upsert_verified_wechat_account(...)` database function.
+6. Call the server-only `upsert_verified_wechat_account(...)` database function with the verified application ID, OpenID and optional UnionID.
 7. Issue the normal secure application session and redirect to the original same-origin path.
 
-The unique OpenID and UnionID indexes, plus the linking function's conflict checks, prevent an already-linked WeChat identity from silently creating another Rift Command account. Conflicting email-development and WeChat accounts must be reviewed explicitly; they are never auto-merged.
+The unique OpenID and UnionID constraints, plus the linking function's conflict checks, prevent an already-linked WeChat identity from silently creating another Rift Command account. Conflicting email-development and WeChat accounts are never silently merged into separate accounts.
 
 ## Provider boundary
 

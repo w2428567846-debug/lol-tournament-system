@@ -1,5 +1,6 @@
 export type VerifiedWechatIdentity = {
   provider: 'WECHAT';
+  appId: string;
   openId: string;
   unionId: string | null;
   nickname: string | null;

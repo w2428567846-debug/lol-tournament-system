@@ -9,7 +9,7 @@ export default async function AdminDashboard() {
   if (!metrics) return null;
   const items = [
     [String(metrics.tournaments).padStart(2, '0'), '赛事数量', '数据库赛事'],
-    [String(metrics.players).padStart(2, '0'), '选手档案', '已完成资料'],
+    [String(metrics.players).padStart(2, '0'), '社区账户', '可参与报名'],
     [String(metrics.pending).padStart(2, '0'), '待审核报名', '需要处理'],
     [String(metrics.approved).padStart(2, '0'), '已通过报名', '当前有效'],
   ];
@@ -25,7 +25,7 @@ export default async function AdminDashboard() {
       </section>
       <section className="mt-10 grid gap-4 lg:grid-cols-3">
         <AdminShortcut href="/admin/tournaments" code="TR" title="赛事管理" description="查看数据库中的赛事状态、可见性和报名周期。" />
-        <AdminShortcut href="/admin/players" code="PL" title="选手管理" description="查看报名社区的玩家档案与 Riot ID。" />
+        <AdminShortcut href="/admin/players" code="PL" title="常用资料" description="查看玩家自愿保存的游戏 ID 与预填资料。" />
         <AdminShortcut href="/admin/registrations" code="RG" title="报名审核" description="筛选、检索并审核个人赛事报名。" />
       </section>
     </main>

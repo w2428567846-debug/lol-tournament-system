@@ -1,11 +1,10 @@
 import Link from 'next/link';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
-import { MatchCard } from '@/components/match/match-card';
 import { TournamentCard } from '@/components/tournament/tournament-card';
 import { formatDateTime } from '@/lib/format';
-import { recentResults, standings, upcomingMatches } from '@/lib/sample-data';
 import { getFeaturedTournament } from '@/lib/tournaments/queries';
+import { tournamentStatusLabels } from '@/lib/tournaments/status';
 
 export default async function HomePage() {
   const { tournament, isFallback } = await getFeaturedTournament();
@@ -33,7 +32,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid items-center gap-5 border border-white/12 bg-[#080b10]/78 px-5 py-4 shadow-2xl shadow-black/40 backdrop-blur-xl sm:grid-cols-[1.2fr_1fr_1fr] sm:px-7">
-            <div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Registration</p><p className="mt-1 font-black text-white">{registrationOpen ? '报名通道开放' : tournament.status}</p></div>
+            <div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Registration</p><p className="mt-1 font-black text-white">{registrationOpen ? '报名通道开放' : tournamentStatusLabels[tournament.status]}</p></div>
             <div className="border-y border-white/10 py-3 sm:border-x sm:border-y-0 sm:px-8 sm:py-0"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">当前申请</p><p className="mt-1 text-sm font-bold text-slate-200"><span className="text-emerald-200">{tournament.approvedCount} 已通过</span> · {tournament.pendingCount} 待审核</p></div>
             <div className="sm:text-right"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">报名截止</p><p className="mt-1 text-sm font-bold text-white">{formatDateTime(tournament.registrationEndAt)}</p></div>
           </div>
@@ -46,17 +45,8 @@ export default async function HomePage() {
         <div className="mt-8"><TournamentCard tournament={tournament} featured /></div>
       </section>
 
-      <section id="matches" className="border-y border-white/8 bg-[#0a0e14]">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:px-10"><SectionHeading eyebrow="Match center" title="即将开始" /><p className="mt-3 text-xs text-slate-600">赛程仍为界面示例，比赛逻辑将在后续阶段接入。</p><div className="mt-8 grid gap-4 lg:grid-cols-2">{upcomingMatches.map((match) => <MatchCard key={match.id} match={match} />)}</div></div>
-      </section>
-
-      <section id="standings" className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[1.05fr_.95fr] lg:px-10">
-        <div><SectionHeading eyebrow="Latest scores" title="最近结果" /><p className="mt-3 text-xs text-slate-600">演示内容</p><div className="mt-8 space-y-3">{recentResults.map((match) => <MatchCard key={match.id} match={match} compact />)}</div></div>
-        <div><SectionHeading eyebrow="Group A" title="当前积分" /><p className="mt-3 text-xs text-slate-600">演示内容</p><div className="mt-8 overflow-hidden border border-white/10 bg-[#0d1219]"><div className="grid grid-cols-[44px_1fr_repeat(3,54px)] border-b border-white/8 px-4 py-3 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 sm:px-6"><span>#</span><span>战队</span><span className="text-center">胜</span><span className="text-center">负</span><span className="text-right">积分</span></div>{standings.map((team, index) => <div key={team.shortName} className="grid grid-cols-[44px_1fr_repeat(3,54px)] items-center border-b border-white/6 px-4 py-4 last:border-0 sm:px-6"><span className={`text-sm font-black ${index < 2 ? 'text-[#d8b968]' : 'text-slate-600'}`}>{String(index + 1).padStart(2, '0')}</span><span className="font-bold text-slate-100">{team.name} <span className="ml-2 text-xs text-slate-600">{team.shortName}</span></span><span className="text-center font-semibold text-slate-300">{team.wins}</span><span className="text-center text-slate-500">{team.losses}</span><span className="text-right text-lg font-black text-white">{team.points}</span></div>)}</div></div>
-      </section>
-
       <section id="player-ecosystem" className="border-t border-white/8 bg-[#0a0e14]">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Player ecosystem</p><h2 className="mt-2 text-3xl font-black uppercase tracking-[-.04em] text-white sm:text-4xl">社区报名流程</h2><p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">不展示虚假的职业选手统计。真实人数、位置和参与者只会来自数据库及主办方审核结果。</p></div><Link href="/account" className="text-xs font-bold uppercase tracking-[.16em] text-[#d8b968]">建立我的档案 →</Link></div><div className="mt-8 grid gap-4 md:grid-cols-3"><FlowStep code="01" title="建立选手档案" description="保存 Riot ID、服务器、段位和首选位置。" /><FlowStep code="02" title="提交赛事报名" description="私人赛事由服务器验证群内邀请码。" /><FlowStep code="03" title="等待主办方审核" description="在账户页查看 PENDING、APPROVED 等真实状态。" /></div></div>
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10"><div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Player registration</p><h2 className="mt-2 text-3xl font-black uppercase tracking-[-.04em] text-white sm:text-4xl">微信群赛事报名流程</h2><p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">以赛事报名和主办方审核为中心，不要求绑定国际账号，也不需要先创建完整档案。</p></div><Link href="/tournaments" className="text-xs font-bold uppercase tracking-[.16em] text-[#d8b968]">选择赛事 →</Link></div><div className="mt-8 grid gap-4 md:grid-cols-3"><FlowStep code="01" title="打开群内链接" description="登录后直接进入主办方分享的赛事报名页。" /><FlowStep code="02" title="填写游戏 ID" description="输入玩家名字#编号、段位、位置和群昵称。" /><FlowStep code="03" title="等待主办方审核" description="在账户页查看等待、通过、候补或拒绝状态。" /></div></div>
       </section>
       <SiteFooter />
     </main>

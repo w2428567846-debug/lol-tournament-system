@@ -23,7 +23,7 @@ export async function getTournamentDetail(slug: string): Promise<{ tournament: T
   if (!isSupabaseConfigured()) {
     const match = developmentTournaments.find((item) => item.slug === slug);
     return {
-      tournament: match ? { ...match, approvedCount: 0, pendingCount: 0, participants: [] } : null,
+      tournament: match ? { ...match, approvedCount: 0, pendingCount: 0, waitlistedCount: 0, participants: [] } : null,
       isFallback: true,
     };
   }
@@ -42,15 +42,15 @@ export async function getFeaturedTournament(): Promise<{ tournament: TournamentD
   }
 
   if (!isSupabaseConfigured()) {
-    return { tournament: { ...featuredTournament, approvedCount: 0, pendingCount: 0, participants: [] }, isFallback: true };
+    return { tournament: { ...featuredTournament, approvedCount: 0, pendingCount: 0, waitlistedCount: 0, participants: [] }, isFallback: true };
   }
 
   const listed = await listTournaments();
   const preferred = listed.tournaments.find((item) => item.status === 'REGISTRATION') ?? listed.tournaments[0];
-  if (!preferred) return { tournament: { ...featuredTournament, approvedCount: 0, pendingCount: 0, participants: [] }, isFallback: true };
+  if (!preferred) return { tournament: { ...featuredTournament, approvedCount: 0, pendingCount: 0, waitlistedCount: 0, participants: [] }, isFallback: true };
 
   const detail = await getTournamentDetail(preferred.slug);
   return detail.tournament
     ? { tournament: detail.tournament, isFallback: detail.isFallback }
-    : { tournament: { ...preferred, approvedCount: 0, pendingCount: 0, participants: [] }, isFallback: false };
+    : { tournament: { ...preferred, approvedCount: 0, pendingCount: 0, waitlistedCount: 0, participants: [] }, isFallback: false };
 }

@@ -5,6 +5,17 @@ export type TeamSummary = {
 
 export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED' | 'CANCELLED';
 
+export type TournamentStatus =
+  | 'DRAFT'
+  | 'REGISTRATION'
+  | 'REGISTRATION_CLOSED'
+  | 'ROSTER_LOCKED'
+  | 'TEAM_FORMING'
+  | 'SCHEDULED'
+  | 'ONGOING'
+  | 'FINISHED'
+  | 'CANCELLED';
+
 export type Match = {
   id: string;
   stage: string;
@@ -24,7 +35,7 @@ export type Tournament = {
   name: string;
   slug: string;
   description: string;
-  status: 'DRAFT' | 'REGISTRATION' | 'ONGOING' | 'FINISHED';
+  status: TournamentStatus;
   visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
   registrationType: 'SOLO' | 'TEAM' | 'BOTH';
   registrationStartAt: string;
@@ -42,7 +53,7 @@ export type Tournament = {
 };
 
 export type TournamentParticipantPreview = {
-  displayName: string;
+  gameId: string;
   primaryRole: PlayerRole;
   rank: string;
 };
@@ -50,6 +61,7 @@ export type TournamentParticipantPreview = {
 export type TournamentDetail = Tournament & {
   approvedCount: number;
   pendingCount: number;
+  waitlistedCount: number;
   participants: TournamentParticipantPreview[];
 };
 
@@ -85,12 +97,12 @@ export type Player = {
 export type PlayerProfile = {
   id: string;
   accountId: string;
-  displayName: string;
-  riotId: string;
-  server: string;
+  gameName: string;
+  gameTag: string;
+  gameId: string;
   primaryRole: PlayerRole;
   secondaryRole: PlayerRole | null;
-  rank: string;
+  currentRank: string;
   groupNickname: string | null;
   bio: string | null;
   createdAt: string;
@@ -114,20 +126,25 @@ export type RegistrationStatus = 'PENDING' | 'APPROVED' | 'WAITLISTED' | 'REJECT
 export type TournamentRegistration = {
   id: string;
   tournamentId: string;
-  playerId: string;
+  accountId: string;
+  gameName: string;
+  gameTag: string;
+  gameId: string;
+  rankSnapshot: string;
   status: RegistrationStatus;
-  preferredRole: PlayerRole;
+  primaryRole: PlayerRole;
   secondaryRole: PlayerRole | null;
+  groupNicknameSnapshot: string | null;
   note: string | null;
   createdAt: string;
   updatedAt: string;
 };
 
 export type AccountRegistration = TournamentRegistration & {
-  tournament: Pick<Tournament, 'name' | 'slug' | 'startAt'>;
+  tournament: Pick<Tournament, 'name' | 'slug' | 'startAt' | 'status' | 'registrationStartAt' | 'registrationEndAt'>;
+  canSelfManage: boolean;
 };
 
 export type AdminRegistration = TournamentRegistration & {
-  player: Pick<PlayerProfile, 'displayName' | 'riotId' | 'server'>;
   tournament: Pick<Tournament, 'id' | 'name' | 'slug'>;
 };

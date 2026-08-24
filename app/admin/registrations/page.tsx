@@ -1,8 +1,6 @@
 import type { Metadata } from 'next';
-import { RegistrationActions } from '@/components/admin/registration-actions';
-import { StatusBadge } from '@/components/registration/status-badge';
+import { RegistrationReviewList } from '@/components/admin/registration-review-list';
 import { getAdminRegistrations, getAdminTournaments } from '@/lib/admin/queries';
-import { formatDateTime } from '@/lib/format';
 import type { RegistrationStatus } from '@/types';
 
 export const metadata: Metadata = { title: '报名审核' };
@@ -23,11 +21,10 @@ export default async function AdminRegistrationsPage({ searchParams }: { searchP
       <form className="mt-8 grid gap-3 border border-white/8 bg-[#0a0e14] p-4 md:grid-cols-[1fr_1fr_1.2fr_auto]" method="get">
         <select className={fieldClass} name="tournament" defaultValue={tournamentId}><option value="">全部赛事</option>{tournaments.map((tournament) => <option key={tournament.id} value={tournament.id}>{tournament.name}</option>)}</select>
         <select className={fieldClass} name="status" defaultValue={statusValue ?? ''}><option value="">全部状态</option>{statuses.map((status) => <option key={status}>{status}</option>)}</select>
-        <input className={fieldClass} name="search" defaultValue={search} placeholder="搜索 Riot ID / 显示名称" />
+        <input className={fieldClass} name="search" defaultValue={search} placeholder="搜索游戏 ID / 群昵称" />
         <button className="bg-[#d8b968] px-5 py-3 text-xs font-black text-[#080b10]">筛选</button>
       </form>
-      <div className="mt-6 space-y-4">{registrations.map((registration) => <article key={registration.id} className="border border-white/8 bg-[#0d1219] p-5 sm:p-6"><div className="grid gap-5 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center"><div><div className="flex flex-wrap items-center gap-3"><h2 className="text-lg font-black">{registration.player.displayName}</h2><StatusBadge status={registration.status} /></div><p className="mt-2 text-sm text-slate-400">{registration.player.riotId} · {registration.player.server}</p><p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt)}</p></div><div><p className="text-sm font-bold text-slate-200">{registration.tournament.name}</p><p className="mt-2 text-xs text-slate-500">位置：{registration.preferredRole}{registration.secondaryRole ? ` / ${registration.secondaryRole}` : ''}</p>{registration.note ? <p className="mt-2 line-clamp-2 text-xs leading-5 text-slate-600">备注：{registration.note}</p> : null}</div><RegistrationActions registrationId={registration.id} /></div></article>)}</div>
-      {registrations.length === 0 ? <p className="mt-6 border border-dashed border-white/12 p-8 text-center text-sm text-slate-600">没有符合筛选条件的报名。</p> : null}
+      <RegistrationReviewList registrations={registrations} />
     </main>
   );
 }

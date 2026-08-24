@@ -17,7 +17,10 @@ export function RegistrationActions({ registrationId }: { registrationId: string
   async function update(status: RegistrationStatus) {
     setSubmitting(status);
     const response = await fetch(`/api/admin/registrations/${registrationId}`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status }) });
-    if (!response.ok) window.alert('更新失败，请确认管理员权限后重试。');
+    if (!response.ok) {
+      const result = await response.json() as { message?: string };
+      window.alert(result.message ?? '更新失败，请确认管理员权限后重试。');
+    }
     router.refresh();
     setSubmitting(null);
   }

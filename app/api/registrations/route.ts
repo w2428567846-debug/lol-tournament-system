@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAuthenticatedClient } from '@/lib/auth/server';
+import { parseGameId } from '@/lib/game-id';
 import type { PlayerRole } from '@/types';
 
 const roles: PlayerRole[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
@@ -7,10 +8,9 @@ const roles: PlayerRole[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 const messages: Record<string, string> = {
   INVALID_INVITE_CODE: '邀请码不正确。',
   INVITE_CODE_REQUIRED: '这项私人赛事需要邀请码。',
-  ALREADY_REGISTERED: '你已经报名过这项赛事。',
-  PLAYER_PROFILE_REQUIRED: '请先完成选手档案。',
+  ACCOUNT_ALREADY_REGISTERED: '你已经报名过这项赛事。',
+  GAME_ID_ALREADY_REGISTERED: '这个游戏 ID 已经报名过这项赛事。',
   REGISTRATION_CLOSED: '当前不在报名时间内。',
-  PLAYER_LIMIT_REACHED: '报名人数已达到上限。',
   SOLO_REGISTRATION_DISABLED: '这项赛事不接受个人报名。',
 };
 
@@ -20,20 +20,27 @@ export async function POST(request: Request) {
 
   const body = await request.json() as Record<string, unknown>;
   const tournamentId = String(body.tournament_id ?? '');
-  const preferredRole = String(body.preferred_role ?? '') as PlayerRole;
+  const gameId = parseGameId(String(body.game_id ?? ''));
+  const currentRank = String(body.current_rank ?? '').trim();
+  const primaryRole = String(body.primary_role ?? '') as PlayerRole;
   const secondaryValue = String(body.secondary_role ?? '');
   const secondaryRole = secondaryValue ? secondaryValue as PlayerRole : null;
+  const groupNickname = String(body.group_nickname ?? '').trim() || null;
   const note = String(body.note ?? '').trim() || null;
   const inviteCode = String(body.invite_code ?? '').trim() || null;
 
-  if (!tournamentId || !roles.includes(preferredRole) || (secondaryRole && !roles.includes(secondaryRole))) return NextResponse.json({ message: '报名资料不完整。' }, { status: 400 });
-  if (secondaryRole === preferredRole) return NextResponse.json({ message: '首选与第二位置不能相同。' }, { status: 400 });
-  if ((note?.length ?? 0) > 500) return NextResponse.json({ message: '备注不能超过 500 个字符。' }, { status: 400 });
+  if (!tournamentId || !gameId || !currentRank || currentRank.length > 40 || !roles.includes(primaryRole) || (secondaryRole && !roles.includes(secondaryRole))) return NextResponse.json({ message: '请填写有效的游戏 ID、段位和位置。' }, { status: 400 });
+  if (secondaryRole === primaryRole) return NextResponse.json({ message: '首选与第二位置不能相同。' }, { status: 400 });
+  if ((groupNickname?.length ?? 0) > 50 || (note?.length ?? 0) > 500) return NextResponse.json({ message: '群昵称或备注长度超出限制。' }, { status: 400 });
 
   const { data, error } = await authenticated.supabase.rpc('register_for_tournament', {
     p_tournament_id: tournamentId,
-    p_preferred_role: preferredRole,
+    p_game_name: gameId.gameName,
+    p_game_tag: gameId.gameTag,
+    p_current_rank: currentRank,
+    p_primary_role: primaryRole,
     p_secondary_role: secondaryRole,
+    p_group_nickname: groupNickname,
     p_note: note,
     p_invite_code: inviteCode,
   });

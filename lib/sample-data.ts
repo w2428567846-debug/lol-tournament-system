@@ -21,7 +21,7 @@ export const featuredTournament: Tournament = {
   createdBy: null,
   createdAt: '2026-08-18T12:00:00+09:00',
   updatedAt: '2026-08-24T12:00:00+09:00',
-  rules: '报名者需使用本人 Riot ID。请保持群昵称与报名资料一致，并在比赛开始前 30 分钟上线。',
+  rules: '报名者需填写本人中国区游戏 ID。请保持群昵称与报名资料一致，并在比赛开始前 30 分钟上线。',
 };
 
 const t1 = { name: 'T1', shortName: 'T1' };

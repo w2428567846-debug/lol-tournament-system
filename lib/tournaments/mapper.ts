@@ -34,10 +34,11 @@ export function mapTournamentDetail(row: TournamentRecord): TournamentDetail {
     ...tournament,
     approvedCount: Number(row.approved_count ?? 0),
     pendingCount: Number(row.pending_count ?? 0),
+    waitlistedCount: Number(row.waitlisted_count ?? 0),
     participants: participants.map((participant) => {
       const item = participant as TournamentRecord;
       return {
-        displayName: String(item.display_name),
+        gameId: String(item.game_id),
         primaryRole: item.primary_role as TournamentDetail['participants'][number]['primaryRole'],
         rank: String(item.rank),
       };

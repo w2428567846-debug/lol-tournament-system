@@ -13,6 +13,9 @@ export async function PATCH(_request: Request, { params }: { params: Promise<{ i
     .select('id')
     .maybeSingle();
 
-  if (error || !data) return NextResponse.json({ message: '无法取消这次报名。' }, { status: 400 });
+  if (error || !data) {
+    const locked = error?.message.includes('ROSTER_LOCKED');
+    return NextResponse.json({ message: locked ? '报名已经关闭或名单已锁定，不能自行取消。' : '无法取消这次报名。' }, { status: 400 });
+  }
   return NextResponse.json({ ok: true });
 }
