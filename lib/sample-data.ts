@@ -1,4 +1,4 @@
-import type { Match, Standing, Team, Tournament } from '@/types';
+import type { Match, Player, Standing, Team, Tournament } from '@/types';
 
 export const featuredTournament: Tournament = {
   id: 'summer-championship-2026',
@@ -69,4 +69,13 @@ export const teams: Team[] = [
   { id: 'tes', ...tes, description: '围绕双 C 输出构建的进攻型战队，比赛节奏紧凑。', region: 'CN', players: 6, record: '2–3', status: 'ACTIVE' },
   { id: 'hle', ...hle, description: '阵容深度出色，善于通过资源交换寻找翻盘窗口。', region: 'KR', players: 6, record: '2–3', status: 'ACTIVE' },
   { id: 'jdg', ...jdg, description: '正在补充替补选手，为淘汰赛阶段完成最后阵容调整。', region: 'CN', players: 5, record: '1–4', status: 'RECRUITING' },
+];
+
+export const players: Player[] = [
+  { id: 'p-zeus', summonerName: 'Zeus', realName: 'Choi Woo-je', role: 'TOP', team: t1, rank: '王者 1,214 LP', rating: 9.6, matches: 12, status: 'SIGNED' },
+  { id: 'p-canyon', summonerName: 'Canyon', realName: 'Kim Geon-bu', role: 'JUNGLE', team: gen, rank: '王者 1,086 LP', rating: 9.4, matches: 11, status: 'SIGNED' },
+  { id: 'p-chovy', summonerName: 'Chovy', realName: 'Jeong Ji-hoon', role: 'MID', team: gen, rank: '王者 1,338 LP', rating: 9.8, matches: 13, status: 'SIGNED' },
+  { id: 'p-elk', summonerName: 'Elk', realName: 'Zhao Jia-Hao', role: 'ADC', team: blg, rank: '宗师 846 LP', rating: 9.2, matches: 12, status: 'SIGNED' },
+  { id: 'p-kelia', summonerName: 'Keria', realName: 'Ryu Min-seok', role: 'SUPPORT', team: t1, rank: '王者 972 LP', rating: 9.5, matches: 12, status: 'SIGNED' },
+  { id: 'p-nova', summonerName: 'Nova', realName: 'Open Qualifier', role: 'JUNGLE', team: null, rank: '宗师 621 LP', rating: 8.7, matches: 8, status: 'FREE_AGENT' },
 ];

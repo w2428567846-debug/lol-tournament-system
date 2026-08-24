@@ -4,6 +4,7 @@ const navigation = [
   { label: '首页', href: '/' },
   { label: '赛事', href: '/tournaments' },
   { label: '战队', href: '/teams' },
+  { label: '选手', href: '/players' },
   { label: '赛程', href: '/#matches' },
   { label: '排行榜', href: '/#standings' },
 ];
@@ -28,8 +29,10 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-5 lg:flex">
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-400">● System online</span>
+        <div className="hidden items-center gap-3 lg:flex">
+          <Link href="/players#register" className="bg-[#d8b968] px-5 py-2.5 text-xs font-black text-[#080b10] transition hover:bg-[#edd58f]">
+            选手报名
+          </Link>
           <Link href="/admin" className="border border-white/15 px-5 py-2.5 text-xs font-bold text-white transition hover:border-[#d8b968]/50 hover:text-[#d8b968]">
             管理后台
           </Link>
@@ -43,6 +46,7 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/players#register" className="mt-3 block bg-[#d8b968] px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#080b10]">选手报名</Link>
             <Link href="/admin" className="mt-3 block bg-[#d8b968] px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#080b10]">管理后台</Link>
           </nav>
         </details>

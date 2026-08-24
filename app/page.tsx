@@ -4,6 +4,7 @@ import { MatchCard } from '@/components/match/match-card';
 import { TournamentCard } from '@/components/tournament/tournament-card';
 import {
   featuredTournament,
+  players,
   recentResults,
   standings,
   upcomingMatches,
@@ -14,80 +15,117 @@ export default function HomePage() {
     <main className="min-h-screen overflow-hidden bg-[#080b10] text-white">
       <SiteHeader />
 
-      <section className="relative isolate border-b border-white/8">
-        <div className="hero-grid absolute inset-0 -z-10 opacity-40" />
-        <div className="absolute -left-40 top-12 -z-10 h-96 w-96 rounded-full bg-cyan-500/8 blur-3xl" />
-        <div className="mx-auto grid min-h-[620px] max-w-7xl items-center gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1.08fr_.92fr] lg:px-10 lg:py-24">
-          <div className="max-w-3xl">
-            <div className="mb-8 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.28em] text-[#d8b968]">
-              <span className="h-px w-10 bg-[#d8b968]" />
-              Tournament operations platform
+      <section className="relative isolate min-h-[700px] overflow-hidden border-b border-white/10">
+        <div
+          className="absolute inset-0 -z-30 bg-[url('/hero-arena.png')] bg-cover bg-center"
+          role="img"
+          aria-label="蓝金两方选手在大型电竞场馆对阵"
+        />
+        <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(3,7,12,.38)_0%,rgba(3,7,12,.25)_44%,rgba(8,11,16,.96)_100%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(3,7,12,.18)_55%,rgba(3,7,12,.58)_100%)]" />
+
+        <div className="mx-auto flex min-h-[700px] max-w-7xl flex-col justify-between px-5 pb-8 pt-24 sm:px-8 lg:px-10 lg:pt-28">
+          <div className="mx-auto flex max-w-4xl flex-1 flex-col items-center justify-center pb-14 text-center">
+            <div className="mb-7 flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.34em] text-[#e6ca7b] sm:text-xs">
+              <span className="h-px w-8 bg-[#d8b968] sm:w-12" />
+              Rift Command · 2026
+              <span className="h-px w-8 bg-[#d8b968] sm:w-12" />
             </div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-[0.35em] text-cyan-300">
-              Summer Championship 2026
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.4em] text-cyan-200 sm:text-sm">
+              Summer Championship
             </p>
-            <h1 className="max-w-4xl text-5xl font-black uppercase leading-[0.95] tracking-[-0.055em] sm:text-7xl lg:text-[5.4rem]">
+            <h1 className="text-5xl font-black uppercase leading-[.92] tracking-[-0.06em] text-white drop-shadow-[0_8px_35px_rgba(0,0,0,.9)] sm:text-7xl lg:text-[6.5rem]">
               掌控每一场
-              <span className="block text-[#d8b968]">荣耀之战</span>
+              <span className="mt-2 block bg-gradient-to-r from-[#f4dc91] via-[#d8b968] to-[#f2b35d] bg-clip-text text-transparent">荣耀之战</span>
             </h1>
-            <p className="mt-7 max-w-xl text-base leading-7 text-slate-400 sm:text-lg">
-              从战队报名、赛程编排到比分结算与自动晋级，让每一场英雄联盟赛事都清晰、专业、有序。
+            <p className="mt-7 max-w-2xl text-sm leading-7 text-slate-300 drop-shadow-lg sm:text-lg">
+              从报名到捧杯，一站式管理战队、选手、赛程与积分。让每一场对决，都值得被看见。
             </p>
 
-            <div className="mt-10 flex flex-wrap items-center gap-4">
+            <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
               <Link
-                href="/tournaments"
-                className="gold-button inline-flex min-h-12 items-center justify-center px-7 text-sm font-black uppercase tracking-[0.16em] text-[#080b10]"
+                href="/players#register"
+                className="gold-button inline-flex min-h-12 items-center justify-center px-8 text-sm font-black uppercase tracking-[0.16em] text-[#080b10]"
               >
-                查看当前赛事 <span aria-hidden="true" className="ml-3">→</span>
+                立即报名 <span aria-hidden="true" className="ml-3">→</span>
               </Link>
               <Link
                 href="#matches"
-                className="inline-flex min-h-12 items-center justify-center border border-white/15 px-7 text-sm font-bold tracking-wide text-slate-200 transition hover:border-cyan-300/50 hover:text-white"
+                className="inline-flex min-h-12 items-center justify-center border border-white/30 bg-black/25 px-8 text-sm font-bold tracking-wide text-white backdrop-blur-md transition hover:border-cyan-200/60 hover:bg-black/40"
               >
-                今日赛程
+                查看赛程
               </Link>
             </div>
-
-            <dl className="mt-12 grid max-w-lg grid-cols-3 border-y border-white/10 py-5">
-              {[
-                ['16', '参赛战队'],
-                ['32', '总比赛数'],
-                ['08', '比赛日'],
-              ].map(([value, label]) => (
-                <div key={label} className="border-r border-white/10 px-4 first:pl-0 last:border-0">
-                  <dt className="text-2xl font-black tracking-tight text-white">{value}</dt>
-                  <dd className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">{label}</dd>
-                </div>
-              ))}
-            </dl>
           </div>
 
-          <div className="relative mx-auto w-full max-w-lg lg:mx-0 lg:ml-auto">
-            <div className="absolute -inset-3 border border-[#d8b968]/15" />
-            <div className="relative overflow-hidden border border-white/10 bg-[#0d1219]/95 p-6 shadow-2xl shadow-black/50 sm:p-8">
-              <div className="mb-8 flex items-center justify-between border-b border-white/8 pb-5">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#d8b968]">Featured match</p>
-                  <p className="mt-2 text-sm font-semibold text-slate-200">小组赛 · 第 3 轮</p>
-                </div>
-                <span className="live-pill">今日 20:00</span>
+          <div className="grid items-center gap-5 border border-white/12 bg-[#080b10]/78 px-5 py-4 shadow-2xl shadow-black/40 backdrop-blur-xl sm:grid-cols-[1fr_auto_1fr] sm:px-7">
+            <div className="flex items-center justify-center gap-4 sm:justify-start">
+              <span className="grid h-12 w-12 place-items-center border border-cyan-300/35 bg-cyan-300/10 font-black text-cyan-100">T1</span>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[.24em] text-cyan-300">Blue side</p>
+                <p className="mt-1 font-black text-white">T1</p>
               </div>
+            </div>
+            <div className="flex items-center justify-center gap-4 border-y border-white/10 py-3 sm:border-x sm:border-y-0 sm:px-8 sm:py-0">
+              <span className="live-pill whitespace-nowrap">今日 20:00</span>
+              <div className="text-center">
+                <p className="text-[10px] font-bold uppercase tracking-[.24em] text-slate-500">Group stage · BO3</p>
+                <p className="mt-1 text-lg font-black italic text-white">VS</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-4 sm:justify-end">
+              <div className="text-right">
+                <p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Red side</p>
+                <p className="mt-1 font-black text-white">Gen.G</p>
+              </div>
+              <span className="grid h-12 w-12 place-items-center border border-[#d8b968]/40 bg-[#d8b968]/10 font-black text-[#f1d989]">GEN</span>
+            </div>
+          </div>
+        </div>
+      </section>
 
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 text-center">
-                <TeamMark shortName="T1" tone="gold" />
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-[0.22em] text-slate-600">Best of 3</div>
-                  <div className="my-3 text-2xl font-black italic text-slate-400">VS</div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-slate-600">Match 014</div>
-                </div>
-                <TeamMark shortName="GEN" tone="cyan" />
-              </div>
+      <section id="player-stats" className="border-b border-white/8 bg-[#0a0e14]">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Player ecosystem</p>
+              <h2 className="mt-2 text-3xl font-black uppercase tracking-[-.04em] text-white sm:text-4xl">选手数据中心</h2>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-500">报名池、位置分布与赛事评分集中呈现，让组队和招募更高效。</p>
+            </div>
+            <Link href="/players" className="text-xs font-bold uppercase tracking-[.16em] text-slate-400 transition hover:text-[#d8b968]">进入选手中心 →</Link>
+          </div>
 
-              <div className="mt-8 flex items-center justify-between border-t border-white/8 pt-5 text-xs text-slate-500">
-                <span>线上赛 · 召唤峡谷</span>
-                <span className="text-slate-300">赛前分析 →</span>
+          <div className="mt-9 grid gap-4 lg:grid-cols-[.88fr_1.12fr]">
+            <div className="grid grid-cols-2 gap-px overflow-hidden border border-white/9 bg-white/9">
+              {[
+                ['156', '注册选手', '+12 本周'],
+                ['24', '自由选手', '开放招募'],
+                ['38', '活跃战队', '6 支招募中'],
+                ['9.8', '最高评分', '13 场赛事'],
+              ].map(([value, label, note]) => (
+                <div key={label} className="bg-[#0d1219] p-5 sm:p-7">
+                  <p className="text-3xl font-black tracking-tight text-white sm:text-4xl">{value}</p>
+                  <p className="mt-2 text-xs font-bold text-slate-300">{label}</p>
+                  <p className="mt-3 text-[9px] uppercase tracking-[.18em] text-[#d8b968]">{note}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="border border-white/9 bg-[#0d1219]">
+              <div className="grid grid-cols-[44px_1fr_76px_60px] border-b border-white/8 px-4 py-3 text-[9px] font-bold uppercase tracking-[.18em] text-slate-600 sm:px-6">
+                <span>#</span><span>选手</span><span>位置</span><span className="text-right">评分</span>
               </div>
+              {players.slice(0, 4).map((player, index) => (
+                <div key={player.id} className="grid grid-cols-[44px_1fr_76px_60px] items-center border-b border-white/6 px-4 py-4 last:border-0 sm:px-6">
+                  <span className={`text-sm font-black ${index === 0 ? 'text-[#d8b968]' : 'text-slate-600'}`}>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <p className="font-black text-white">{player.summonerName}</p>
+                    <p className="mt-1 text-[10px] text-slate-600">{player.team?.shortName ?? 'FREE'}</p>
+                  </div>
+                  <span className="text-[10px] font-bold uppercase tracking-[.12em] text-slate-400">{player.role}</span>
+                  <span className="text-right text-lg font-black text-white">{player.rating.toFixed(1)}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -140,21 +178,6 @@ export default function HomePage() {
         Rift Command · Tournament Management System
       </footer>
     </main>
-  );
-}
-
-function TeamMark({ shortName, tone }: { shortName: string; tone: 'gold' | 'cyan' }) {
-  const toneClasses = tone === 'gold'
-    ? 'border-[#d8b968]/40 bg-[#d8b968]/10 text-[#f1d989]'
-    : 'border-cyan-400/35 bg-cyan-400/10 text-cyan-200';
-
-  return (
-    <div>
-      <div className={`mx-auto grid h-24 w-24 place-items-center border text-2xl font-black tracking-tight ${toneClasses}`}>
-        {shortName}
-      </div>
-      <p className="mt-4 text-lg font-black text-white">{shortName}</p>
-    </div>
   );
 }
 

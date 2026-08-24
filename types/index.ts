@@ -45,3 +45,17 @@ export type Team = TeamSummary & {
   record: string;
   status: 'ACTIVE' | 'RECRUITING';
 };
+
+export type PlayerRole = 'TOP' | 'JUNGLE' | 'MID' | 'ADC' | 'SUPPORT';
+
+export type Player = {
+  id: string;
+  summonerName: string;
+  realName: string;
+  role: PlayerRole;
+  team: TeamSummary | null;
+  rank: string;
+  rating: number;
+  matches: number;
+  status: 'SIGNED' | 'FREE_AGENT';
+};
