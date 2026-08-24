@@ -32,7 +32,7 @@ export async function SiteHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          {viewer.user ? <Link href="/account" className="bg-[#d8b968] px-5 py-2.5 text-xs font-black text-[#080b10] transition hover:bg-[#edd58f]">我的账户</Link> : <Link href="/login" className="bg-[#d8b968] px-5 py-2.5 text-xs font-black text-[#080b10] transition hover:bg-[#edd58f]">登录 / 注册</Link>}
+          {viewer.account ? <Link href="/account" className="bg-[#d8b968] px-5 py-2.5 text-xs font-black text-[#080b10] transition hover:bg-[#edd58f]">我的账户</Link> : <Link href="/login" className="bg-[#d8b968] px-5 py-2.5 text-xs font-black text-[#080b10] transition hover:bg-[#edd58f]">微信登录</Link>}
           {viewer.isAdmin ? <Link href="/admin" className="border border-white/15 px-5 py-2.5 text-xs font-bold text-white transition hover:border-[#d8b968]/50 hover:text-[#d8b968]">管理后台</Link> : null}
         </div>
 
@@ -44,7 +44,7 @@ export async function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link href={viewer.user ? '/account' : '/login'} className="mt-3 block bg-[#d8b968] px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#080b10]">{viewer.user ? '我的账户' : '登录 / 注册'}</Link>
+            <Link href={viewer.account ? '/account' : '/login'} className="mt-3 block bg-[#d8b968] px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-[#080b10]">{viewer.account ? '我的账户' : '微信登录'}</Link>
             {viewer.isAdmin ? <Link href="/admin" className="mt-3 block border border-white/12 px-4 py-3 text-center text-xs font-black uppercase tracking-[0.14em] text-white">管理后台</Link> : null}
           </nav>
         </details>

@@ -17,17 +17,20 @@ export const dynamic = 'force-dynamic';
 export default async function AccountPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const viewer = await getViewer();
   if (!viewer.configured) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><SetupRequired /><SiteFooter /></main>;
-  if (!viewer.user) redirect('/login?returnTo=/account');
+  if (!viewer.sessionUser || !viewer.account) redirect('/login?returnTo=/account');
 
   const params = await searchParams;
-  const { profile, registrations } = await getAccountOverview(viewer.user.id);
+  const { profile, registrations } = await getAccountOverview(viewer.account.id);
+  const accountLabel = viewer.account.authProvider === 'WECHAT'
+    ? viewer.account.wechatNickname ?? '微信用户'
+    : viewer.sessionUser.email ?? '开发测试账户';
 
   return (
     <main className="min-h-screen bg-[#080b10] text-white">
       <SiteHeader />
       <section className="border-b border-white/8 bg-[#0a0e14]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-12 sm:flex-row sm:items-end sm:justify-between sm:px-8 lg:px-10">
-          <div><p className="text-[10px] font-black uppercase tracking-[.28em] text-[#d8b968]">My account</p><h1 className="mt-2 text-4xl font-black tracking-[-.04em]">玩家账户</h1><p className="mt-3 text-sm text-slate-500">{viewer.user.email}</p></div>
+          <div><p className="text-[10px] font-black uppercase tracking-[.28em] text-[#d8b968]">My account</p><h1 className="mt-2 text-4xl font-black tracking-[-.04em]">玩家账户</h1><p className="mt-3 text-sm text-slate-500">{accountLabel} · {viewer.account.authProvider === 'WECHAT' ? '微信已验证' : '开发测试身份'}</p></div>
           <form action="/auth/signout" method="post"><button className="border border-white/12 px-5 py-2.5 text-xs font-bold text-slate-300">退出登录</button></form>
         </div>
       </section>

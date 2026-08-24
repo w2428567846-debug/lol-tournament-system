@@ -1,30 +1,53 @@
 import type { User } from '@supabase/supabase-js';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import type { Account } from '@/types';
 
 export type Viewer = {
   configured: boolean;
-  user: User | null;
+  sessionUser: User | null;
+  account: Account | null;
   isAdmin: boolean;
 };
 
+type AccountRow = Record<string, unknown>;
+
+function mapAccount(row: AccountRow): Account {
+  return {
+    id: String(row.id),
+    authProvider: row.auth_provider as Account['authProvider'],
+    role: row.role as Account['role'],
+    wechatNickname: row.wechat_nickname == null ? null : String(row.wechat_nickname),
+    wechatAvatarUrl: row.wechat_avatar_url == null ? null : String(row.wechat_avatar_url),
+    createdAt: String(row.created_at),
+    updatedAt: String(row.updated_at),
+  };
+}
+
+async function loadAccount(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
+  const { data: accountId, error: accountIdError } = await supabase.rpc('current_account_id');
+  if (accountIdError || !accountId) return null;
+
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, auth_provider, role, wechat_nickname, wechat_avatar_url, created_at, updated_at')
+    .eq('id', accountId)
+    .maybeSingle();
+  if (error || !data) return null;
+  return mapAccount(data);
+}
+
 export async function getViewer(): Promise<Viewer> {
-  if (!isSupabaseConfigured()) return { configured: false, user: null, isAdmin: false };
+  if (!isSupabaseConfigured()) return { configured: false, sessionUser: null, account: null, isAdmin: false };
 
   try {
     const supabase = await createServerSupabaseClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { configured: true, user: null, isAdmin: false };
-
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    return { configured: true, user, isAdmin: data?.role === 'ADMIN' };
+    if (!user) return { configured: true, sessionUser: null, account: null, isAdmin: false };
+    const account = await loadAccount(supabase);
+    return { configured: true, sessionUser: user, account, isAdmin: account?.role === 'ADMIN' };
   } catch {
-    return { configured: true, user: null, isAdmin: false };
+    return { configured: true, sessionUser: null, account: null, isAdmin: false };
   }
 }
 
@@ -33,19 +56,14 @@ export async function getAuthenticatedClient() {
   const supabase = await createServerSupabaseClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) return { error: 'AUTH_REQUIRED' as const };
-  return { supabase, user };
+  const account = await loadAccount(supabase);
+  if (!account) return { error: 'ACCOUNT_REQUIRED' as const };
+  return { supabase, sessionUser: user, account };
 }
 
 export async function getAdminClient() {
   const authenticated = await getAuthenticatedClient();
   if ('error' in authenticated) return authenticated;
-
-  const { data } = await authenticated.supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', authenticated.user.id)
-    .maybeSingle();
-
-  if (data?.role !== 'ADMIN') return { error: 'ADMIN_REQUIRED' as const };
+  if (authenticated.account.role !== 'ADMIN') return { error: 'ADMIN_REQUIRED' as const };
   return authenticated;
 }

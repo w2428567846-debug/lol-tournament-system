@@ -27,7 +27,7 @@ export async function PUT(request: Request) {
   if (!rank || rank.length > 40 || (groupNickname?.length ?? 0) > 50 || (bio?.length ?? 0) > 500) return NextResponse.json({ message: '档案内容长度不符合要求。' }, { status: 400 });
 
   const { error } = await authenticated.supabase.from('player_profiles').upsert({
-    user_id: authenticated.user.id,
+    account_id: authenticated.account.id,
     display_name: displayName,
     riot_id: riotId,
     server,
@@ -36,7 +36,7 @@ export async function PUT(request: Request) {
     rank,
     group_nickname: groupNickname,
     bio,
-  }, { onConflict: 'user_id' });
+  }, { onConflict: 'account_id' });
 
   if (error) return NextResponse.json({ message: '保存失败，请确认 Riot ID 未被其他资料占用。' }, { status: 400 });
   return NextResponse.json({ ok: true });

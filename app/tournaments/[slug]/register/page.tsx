@@ -17,9 +17,9 @@ export default async function TournamentRegisterPage({ params }: { params: Promi
   const { slug } = await params;
   const viewer = await getViewer();
   if (!viewer.configured) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><SetupRequired /><SiteFooter /></main>;
-  if (!viewer.user) redirect(`/login?returnTo=${encodeURIComponent(`/tournaments/${slug}/register`)}`);
+  if (!viewer.sessionUser || !viewer.account) redirect(`/login?returnTo=${encodeURIComponent(`/tournaments/${slug}/register`)}`);
 
-  const [{ tournament }, account] = await Promise.all([getTournamentDetail(slug), getAccountOverview(viewer.user.id)]);
+  const [{ tournament }, account] = await Promise.all([getTournamentDetail(slug), getAccountOverview(viewer.account.id)]);
   if (!tournament) notFound();
 
   const open = isTournamentRegistrationOpen(tournament);

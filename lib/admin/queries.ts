@@ -36,7 +36,7 @@ export async function getAdminPlayers(): Promise<PlayerProfile[]> {
   const { data, error } = await supabase.from('player_profiles').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(`ADMIN_PLAYERS_FAILED:${error.message}`);
   return (data ?? []).map((row) => ({
-    id: String(row.id), userId: String(row.user_id), displayName: String(row.display_name), riotId: String(row.riot_id), server: String(row.server), primaryRole: row.primary_role as PlayerProfile['primaryRole'], secondaryRole: (row.secondary_role ?? null) as PlayerProfile['secondaryRole'], rank: String(row.rank), groupNickname: row.group_nickname == null ? null : String(row.group_nickname), bio: row.bio == null ? null : String(row.bio), createdAt: String(row.created_at), updatedAt: String(row.updated_at),
+    id: String(row.id), accountId: String(row.account_id), displayName: String(row.display_name), riotId: String(row.riot_id), server: String(row.server), primaryRole: row.primary_role as PlayerProfile['primaryRole'], secondaryRole: (row.secondary_role ?? null) as PlayerProfile['secondaryRole'], rank: String(row.rank), groupNickname: row.group_nickname == null ? null : String(row.group_nickname), bio: row.bio == null ? null : String(row.bio), createdAt: String(row.created_at), updatedAt: String(row.updated_at),
   }));
 }
 

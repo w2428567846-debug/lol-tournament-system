@@ -60,7 +60,7 @@ export function AuthForm({ mode, config, returnTo }: { mode: 'login' | 'register
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-5">
       <label className="block">
-        <span className="text-xs font-bold text-slate-300">邮箱</span>
+        <span className="text-xs font-bold text-slate-300">测试邮箱</span>
         <input name="email" type="email" required autoComplete="email" className="mt-2 w-full border border-white/12 bg-[#080b10] px-4 py-3 text-sm text-white outline-none transition focus:border-[#d8b968]/60" placeholder="player@example.com" />
       </label>
       <label className="block">

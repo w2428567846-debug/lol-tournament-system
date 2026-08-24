@@ -84,7 +84,7 @@ export type Player = {
 
 export type PlayerProfile = {
   id: string;
-  userId: string;
+  accountId: string;
   displayName: string;
   riotId: string;
   server: string;
@@ -93,6 +93,18 @@ export type PlayerProfile = {
   rank: string;
   groupNickname: string | null;
   bio: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AuthProvider = 'WECHAT' | 'EMAIL_DEV';
+
+export type Account = {
+  id: string;
+  authProvider: AuthProvider;
+  role: 'USER' | 'ADMIN';
+  wechatNickname: string | null;
+  wechatAvatarUrl: string | null;
   createdAt: string;
   updatedAt: string;
 };

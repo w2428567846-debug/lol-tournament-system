@@ -6,7 +6,7 @@ type RecordValue = Record<string, unknown>;
 function mapProfile(row: RecordValue): PlayerProfile {
   return {
     id: String(row.id),
-    userId: String(row.user_id),
+    accountId: String(row.account_id),
     displayName: String(row.display_name),
     riotId: String(row.riot_id),
     server: String(row.server),
@@ -20,12 +20,12 @@ function mapProfile(row: RecordValue): PlayerProfile {
   };
 }
 
-export async function getAccountOverview(userId: string) {
+export async function getAccountOverview(accountId: string) {
   const supabase = await createServerSupabaseClient();
   const { data: profileData, error: profileError } = await supabase
     .from('player_profiles')
     .select('*')
-    .eq('user_id', userId)
+    .eq('account_id', accountId)
     .maybeSingle();
 
   if (profileError) throw new Error(`PROFILE_LOAD_FAILED:${profileError.message}`);

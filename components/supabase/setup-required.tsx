@@ -7,7 +7,7 @@ export function SetupRequired({ compact = false }: { compact?: boolean }) {
         <p className="text-[10px] font-black uppercase tracking-[.26em] text-amber-200">Database setup required</p>
         <h1 className="mt-3 text-2xl font-black text-white">尚未连接 Supabase</h1>
         <p className="mt-3 text-sm leading-6 text-slate-400">
-          Phase 2 页面和安全逻辑已经就绪。配置项目网址与公开 anon key，并执行 migration 后即可启用真实注册流程。
+          数据库与身份架构已经就绪。配置 Supabase、执行全部 migration，并接入微信开放平台后即可启用正式登录与报名。
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           <Link href="/tournaments" className="border border-white/12 px-4 py-2.5 text-xs font-bold text-slate-200">返回赛事中心</Link>

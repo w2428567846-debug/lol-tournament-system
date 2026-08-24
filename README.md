@@ -1,10 +1,12 @@
 # Rift Command
 
-面向私人英雄联盟社区的赛事报名与管理系统。当前 Phase 2 已包含 Supabase 邮箱认证、选手档案、个人赛事报名、私人邀请码、账户报名状态与管理员审核。
+面向私人英雄联盟社区的赛事报名与管理系统。微信是长期主要身份；邮箱认证只作为显式开启的开发测试适配器。
 
 ## 已实现
 
-- `/login`、`/register`、邮箱验证回调与退出登录
+- provider-neutral `accounts` 身份层，微信 OpenID／UnionID 唯一约束
+- 微信 OAuth adapter 边界与服务端账户绑定函数
+- `/login`、`/register` 微信优先界面，以及可选开发邮箱入口
 - `/account` 单一选手档案与我的报名
 - `/tournaments/[slug]` 数据库赛事详情与参与者预览
 - `/tournaments/[slug]/register` SOLO 个人报名
@@ -22,7 +24,7 @@
 cp .env.example .env.local
 ```
 
-执行 `supabase/migrations/202608240001_phase2_registration.sql` 后，填入环境变量即可启用真实流程。未配置时，公共页面会显示明确的开发回退说明，登录、账户和后台不会伪装为已连接。
+依次执行 `supabase/migrations/` 中的全部文件后，填入环境变量即可启用数据层。生产微信登录仍需要开放平台凭据与可信服务端会话桥接；未配置时按钮会保持禁用，不会使用用户手填微信号代替验证。
 
 ## 本地运行与检查
 
