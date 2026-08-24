@@ -26,7 +26,8 @@ function mapAccount(row: AccountRow): Account {
 
 async function loadAccount(supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>) {
   const { data, error } = await supabase.rpc('current_account_summary');
-  if (error || !data) return null;
+  if (error) throw new Error('ACCOUNT_LOOKUP_FAILED');
+  if (!data) return null;
   return mapAccount(data as AccountRow);
 }
 
@@ -46,12 +47,18 @@ export async function getViewer(): Promise<Viewer> {
 
 export async function getAuthenticatedClient() {
   if (!isSupabaseConfigured()) return { error: 'SUPABASE_NOT_CONFIGURED' as const };
-  const supabase = await createServerSupabaseClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return { error: 'AUTH_REQUIRED' as const };
-  const account = await loadAccount(supabase);
-  if (!account) return { error: 'ACCOUNT_REQUIRED' as const };
-  return { supabase, sessionUser: user, account };
+
+  try {
+    const supabase = await createServerSupabaseClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error) return { error: 'AUTH_UNAVAILABLE' as const };
+    if (!user) return { error: 'AUTH_REQUIRED' as const };
+    const account = await loadAccount(supabase);
+    if (!account) return { error: 'ACCOUNT_REQUIRED' as const };
+    return { supabase, sessionUser: user, account };
+  } catch {
+    return { error: 'AUTH_UNAVAILABLE' as const };
+  }
 }
 
 export async function getAdminClient() {

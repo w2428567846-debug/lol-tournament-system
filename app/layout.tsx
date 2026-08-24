@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+import { getSiteOrigin } from '@/lib/site-url';
 import './globals.css';
 
-const siteOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+const siteOrigin = getSiteOrigin();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteOrigin),

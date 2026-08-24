@@ -34,6 +34,10 @@ cp .env.example .env.local
 
 依次执行 `supabase/migrations/` 中的全部文件后，填入环境变量即可启用数据层。生产微信登录仍需要开放平台凭据与可信服务端会话桥接；未配置时按钮会保持禁用，不会使用用户手填微信号代替验证。
 
+## 生产部署
+
+生产架构、Cloudflare Workers 部署、全新 Supabase 项目初始化、临时封闭邮箱 beta、自定义域名和完整上线冒烟清单见 [`docs/PRODUCTION-DEPLOYMENT.md`](docs/PRODUCTION-DEPLOYMENT.md)。`/api/health` 只报告应用和数据库配置是否可用，不返回 URL、密钥或环境内容。
+
 ## 本地运行与检查
 
 ```bash
@@ -43,6 +47,7 @@ pnpm lint
 pnpm exec tsc --noEmit
 pnpm test:domain
 pnpm build
+pnpm test:integration
 ```
 
 真实 PostgreSQL migration 与权限/行为整合检查见 [`docs/INTEGRATION-TESTS.md`](docs/INTEGRATION-TESTS.md)；数据库权限与函数审计见 [`docs/DATABASE-SECURITY.md`](docs/DATABASE-SECURITY.md)。

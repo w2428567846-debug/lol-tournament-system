@@ -3,7 +3,7 @@
 1. Create a Supabase project.
 2. Run every file in `supabase/migrations/` in filename order. Migration 003 converts the application to direct Chinese-community registration snapshots, 004 adds initial production privacy and timezone hardening, 005 adds review operations and audit history, 006 is the database-correctness hotfix, and 007 limits private participant previews to admins plus active PENDING/APPROVED/WAITLISTED registrations.
 3. Copy `.env.example` to `.env.local` and add the project URL and publishable/anon key.
-4. For temporary email testing only, set `ENABLE_EMAIL_DEV_AUTH=true`. Leave it unset or `false` in production, and disable the Supabase email provider in the production project.
+4. Email remains a temporary testing adapter. Keep `ENABLE_EMAIL_DEV_AUTH=false` by default. A controlled production closed beta may set it to `true` only together with the owner checklist in [`docs/PRODUCTION-DEPLOYMENT.md`](../docs/PRODUCTION-DEPLOYMENT.md); disable the flag and Supabase email provider when real WeChat OAuth launches.
 5. Create the first development account through `/register`, then promote it in the SQL editor:
 
 ```sql
@@ -39,3 +39,5 @@ where auth_user_id = (select id from auth.users where email = 'your-email@exampl
 See `docs/WECHAT-AUTH.md` for the integration boundary.
 
 Run the disposable-database validation path in `docs/INTEGRATION-TESTS.md` before applying new migrations to production.
+
+For a brand-new production project, exact CLI migration, RLS verification, Auth redirect, beta-login, and connectivity steps are in [`docs/PRODUCTION-DEPLOYMENT.md`](../docs/PRODUCTION-DEPLOYMENT.md). Never run the integration test or `db reset --linked` against production.

@@ -6,7 +6,7 @@ import { FormEvent, useState } from 'react';
 import { createBrowserSupabaseClient } from '@/lib/supabase/browser';
 import type { SupabasePublicConfig } from '@/lib/supabase/config';
 
-export function AuthForm({ mode, config, returnTo }: { mode: 'login' | 'register'; config: SupabasePublicConfig; returnTo: string }) {
+export function AuthForm({ mode, config, returnTo, siteOrigin }: { mode: 'login' | 'register'; config: SupabasePublicConfig; returnTo: string; siteOrigin: string }) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -38,7 +38,7 @@ export function AuthForm({ mode, config, returnTo }: { mode: 'login' | 'register
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}` },
+      options: { emailRedirectTo: `${siteOrigin}/auth/callback?next=${encodeURIComponent(returnTo)}` },
     });
 
     if (signUpError) {

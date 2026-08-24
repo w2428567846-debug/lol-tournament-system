@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authGuardErrorResponse } from '@/lib/auth/api-response';
 import { getAuthenticatedClient } from '@/lib/auth/server';
 import { parseGameId } from '@/lib/game-id';
 import type { PlayerRole } from '@/types';
@@ -7,7 +8,7 @@ const roles: PlayerRole[] = ['TOP', 'JUNGLE', 'MID', 'ADC', 'SUPPORT'];
 
 export async function PUT(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if ('error' in authenticated) return NextResponse.json({ message: authenticated.error === 'AUTH_REQUIRED' ? '请先登录。' : 'Supabase 尚未配置。' }, { status: 401 });
+  if ('error' in authenticated) return authGuardErrorResponse(authenticated.error);
 
   const body = await request.json() as Record<string, unknown>;
   const gameId = parseGameId(String(body.game_id ?? ''));

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authGuardErrorResponse } from '@/lib/auth/api-response';
 import { getAuthenticatedClient } from '@/lib/auth/server';
 import { parseGameId } from '@/lib/game-id';
 import type { PlayerRole } from '@/types';
@@ -16,7 +17,7 @@ const messages: Record<string, string> = {
 
 export async function POST(request: Request) {
   const authenticated = await getAuthenticatedClient();
-  if ('error' in authenticated) return NextResponse.json({ message: '请先登录后报名。' }, { status: 401 });
+  if ('error' in authenticated) return authGuardErrorResponse(authenticated.error, '请先登录后报名。');
 
   const body = await request.json() as Record<string, unknown>;
   const tournamentId = String(body.tournament_id ?? '');

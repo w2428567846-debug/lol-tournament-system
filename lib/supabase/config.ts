@@ -8,7 +8,14 @@ export function getSupabasePublicConfig(): SupabasePublicConfig | null {
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
   if (!url || !anonKey) return null;
-  return { url, anonKey };
+
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+    return { url: parsed.origin, anonKey };
+  } catch {
+    return null;
+  }
 }
 
 export function isSupabaseConfigured() {

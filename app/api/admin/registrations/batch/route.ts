@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authGuardErrorResponse } from '@/lib/auth/api-response';
 import { getAdminClient } from '@/lib/auth/server';
 import type { RegistrationStatus } from '@/types';
 
@@ -13,7 +14,7 @@ function reviewErrorMessage(message: string) {
 
 export async function PATCH(request: Request) {
   const admin = await getAdminClient();
-  if ('error' in admin) return NextResponse.json({ message: admin.error === 'ADMIN_REQUIRED' ? '管理员权限不足。' : '请先登录。' }, { status: admin.error === 'ADMIN_REQUIRED' ? 403 : 401 });
+  if ('error' in admin) return authGuardErrorResponse(admin.error);
 
   const body = await request.json() as Record<string, unknown>;
   const ids = Array.isArray(body.ids) ? body.ids.map(String).filter(Boolean) : [];

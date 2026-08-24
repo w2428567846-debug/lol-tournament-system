@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { authGuardErrorResponse } from '@/lib/auth/api-response';
 import { getAdminClient } from '@/lib/auth/server';
 import { parseTournamentInput } from '@/lib/admin/tournament-input';
 import type { TournamentStatus } from '@/types';
@@ -15,7 +16,7 @@ async function requireAdmin() {
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdmin();
-  if ('error' in admin) return NextResponse.json({ message: admin.error === 'ADMIN_REQUIRED' ? '管理员权限不足。' : '请先登录。' }, { status: admin.error === 'ADMIN_REQUIRED' ? 403 : 401 });
+  if ('error' in admin) return authGuardErrorResponse(admin.error);
   const body = await request.json() as Record<string, unknown>;
   const { id } = await params;
   const { data: existing, error: loadError } = await admin.supabase.from('tournaments').select('registration_type').eq('id', id).maybeSingle();
@@ -36,7 +37,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const admin = await requireAdmin();
-  if ('error' in admin) return NextResponse.json({ message: admin.error === 'ADMIN_REQUIRED' ? '管理员权限不足。' : '请先登录。' }, { status: admin.error === 'ADMIN_REQUIRED' ? 403 : 401 });
+  if ('error' in admin) return authGuardErrorResponse(admin.error);
   const body = await request.json() as Record<string, unknown>;
   const nextStatus = actionStatuses[String(body.action ?? '')];
   if (!nextStatus) return NextResponse.json({ message: '赛事操作无效。' }, { status: 400 });

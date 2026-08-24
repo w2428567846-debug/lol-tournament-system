@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/config';
+import { safeReturnTo } from '@/lib/auth/return-to';
+import { getSiteOrigin } from '@/lib/site-url';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const siteOrigin = getSiteOrigin();
   const code = url.searchParams.get('code');
-  const requestedNext = url.searchParams.get('next') ?? '/account';
-  const next = requestedNext.startsWith('/') && !requestedNext.startsWith('//') ? requestedNext : '/account';
+  const next = safeReturnTo(url.searchParams.get('next'));
 
-  if (!isSupabaseConfigured()) return NextResponse.redirect(new URL('/login?error=not_configured', url.origin));
+  if (!isSupabaseConfigured()) return NextResponse.redirect(new URL('/login?error=not_configured', siteOrigin));
   if (code) {
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) return NextResponse.redirect(new URL(next, url.origin));
+    if (!error) return NextResponse.redirect(new URL(next, siteOrigin));
   }
 
-  return NextResponse.redirect(new URL('/login?error=callback_failed', url.origin));
+  return NextResponse.redirect(new URL('/login?error=callback_failed', siteOrigin));
 }

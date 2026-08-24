@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
+    "check:vinext": "vinext check",
+    "deploy:cloudflare": "vinext-cloudflare deploy",
     "start": "vinext start",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "test:domain": "node --test tests/*.test.mjs",
@@ -29,6 +31,7 @@
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@vinext/cloudflare": "1.0.0-beta.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
     "eslint": "9.39.4",
