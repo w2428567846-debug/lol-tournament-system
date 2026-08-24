@@ -163,6 +163,34 @@ begin
     raise exception 'safe tournament table reads lost required public columns';
   end if;
 
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'tournaments'
+      and policyname = 'tournaments_read_public'
+      and roles @> array['anon'::name, 'authenticated'::name]
+      and qual like '%visibility%PUBLIC%status%DRAFT%'
+      and qual not like '%is_admin()%'
+  ) or not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'tournaments'
+      and policyname = 'tournaments_read_admin'
+      and roles = array['authenticated'::name]
+      and qual = 'is_admin()'
+  ) or exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'tournaments'
+      and 'anon'::name = any(roles)
+      and qual like '%is_admin()%'
+  ) then
+    raise exception 'public and admin tournament read policies are not safely separated';
+  end if;
+
   if not has_column_privilege('authenticated', 'public.tournament_registrations', 'id', 'SELECT')
     or not has_column_privilege('authenticated', 'public.tournament_registrations', 'account_id', 'SELECT')
   then

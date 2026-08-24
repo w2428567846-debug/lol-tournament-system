@@ -12,6 +12,8 @@ The final pre-OAuth privacy rule is a forward migration in `202608250007_final_p
 
 Hosted Supabase `pgcrypto` compatibility is a forward migration in `202608250008_supabase_pgcrypto_search_path.sql`. It pins the trusted `extensions` schema for invite-code hashing and verification without rewriting migrations 001 through 007.
 
+Anonymous tournament-list compatibility is a forward migration in `202608250009_split_public_tournament_read_policy.sql`. It separates published public reads from authenticated admin reads without granting anonymous callers access to account authorization helpers.
+
 ## Existing data conversion
 
 - `player_profiles.riot_id` is split at the final `#` into `game_name` and `game_tag`.
@@ -41,6 +43,7 @@ The migration stops if an existing registration cannot be resolved to an account
 - Migration 006 replaces the tournament-detail SECURITY DEFINER RPC so anonymous viewers and authenticated nonparticipants receive counts but an empty participant list.
 - Migration 007 narrows registered-viewer access: only PENDING, APPROVED, and WAITLISTED registrations remain eligible. REJECTED and CANCELLED accounts receive counts but an empty participant list; application admins retain access.
 - Migration 008 keeps invite-code hashing and verification compatible with Supabase's `extensions` schema while preserving an explicit `SECURITY DEFINER` search path.
+- Migration 009 keeps anonymous tournament table reads limited to non-draft public rows while preserving full tournament visibility for authenticated application admins.
 
 ## Registration operations behavior
 

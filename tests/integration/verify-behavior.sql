@@ -334,6 +334,18 @@ insert into integration_calls (label, payload)
 select 'public-anon', public.get_tournament_details('public-integration-cup');
 
 do $$
+begin
+  if (select count(*) from public.tournaments) <> 1
+    or not exists (
+      select 1 from public.tournaments where slug = 'public-integration-cup'
+    )
+  then
+    raise exception 'anonymous tournament table read did not return exactly the published public fixture';
+  end if;
+end
+$$;
+
+do $$
 declare
   blocked boolean := false;
 begin

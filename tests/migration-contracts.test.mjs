@@ -8,6 +8,7 @@ const operationsMigration = readFileSync(new URL('../supabase/migrations/2026082
 const correctnessMigration = readFileSync(new URL('../supabase/migrations/202608240006_database_correctness_hotfix.sql', import.meta.url), 'utf8');
 const finalPreOAuthMigration = readFileSync(new URL('../supabase/migrations/202608250007_final_pre_oauth_cleanup.sql', import.meta.url), 'utf8');
 const supabasePgcryptoMigration = readFileSync(new URL('../supabase/migrations/202608250008_supabase_pgcrypto_search_path.sql', import.meta.url), 'utf8');
+const publicTournamentPolicyMigration = readFileSync(new URL('../supabase/migrations/202608250009_split_public_tournament_read_policy.sql', import.meta.url), 'utf8');
 
 test('registration snapshots are account-owned and reject duplicate accounts and game IDs', () => {
   assert.match(migration, /unique_account_tournament unique \(tournament_id, account_id\)/);
@@ -112,4 +113,11 @@ test('fresh-chain privilege hardening tolerates the legacy trigger function alre
 test('hosted Supabase pgcrypto calls resolve through a pinned trusted extension schema', () => {
   assert.match(supabasePgcryptoMigration, /alter function public\.hash_tournament_invite_code\(\)[\s\S]*set search_path = extensions, public, pg_temp/);
   assert.match(supabasePgcryptoMigration, /alter function public\.register_for_tournament\([\s\S]*set search_path = extensions, public, pg_temp/);
+});
+
+test('anonymous tournament reads do not invoke the authenticated-only admin helper', () => {
+  assert.match(publicTournamentPolicyMigration, /drop policy if exists tournaments_read_public_or_admin on public\.tournaments/);
+  assert.match(publicTournamentPolicyMigration, /create policy tournaments_read_public on public\.tournaments\s+for select to anon, authenticated\s+using \(visibility = 'PUBLIC' and status <> 'DRAFT'\)/);
+  assert.match(publicTournamentPolicyMigration, /create policy tournaments_read_admin on public\.tournaments\s+for select to authenticated\s+using \(public\.is_admin\(\)\)/);
+  assert.doesNotMatch(publicTournamentPolicyMigration, /for select to anon[^;]*is_admin\(\)/s);
 });
