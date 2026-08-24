@@ -1,5 +1,13 @@
 import Link from 'next/link';
+import { formatDateRange } from '@/lib/format';
 import type { Tournament } from '@/types';
+
+const statusLabels = {
+  DRAFT: '草稿',
+  REGISTRATION: '报名中',
+  ONGOING: '正在进行',
+  FINISHED: '已结束',
+};
 
 export function TournamentCard({ tournament, featured = false }: { tournament: Tournament; featured?: boolean }) {
   return (
@@ -7,18 +15,19 @@ export function TournamentCard({ tournament, featured = false }: { tournament: T
       <div className="relative p-7 sm:p-10">
         <div className="absolute right-0 top-0 h-28 w-28 border-l border-b border-[#d8b968]/12" aria-hidden="true" />
         <div className="mb-8 flex flex-wrap items-center gap-3">
-          <span className="bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">正在进行</span>
+          <span className="bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">{statusLabels[tournament.status]}</span>
           <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600">{tournament.format}</span>
         </div>
         <h3 className="max-w-2xl text-3xl font-black uppercase tracking-[-0.04em] text-white sm:text-4xl">{tournament.name}</h3>
         <p className="mt-4 max-w-2xl leading-7 text-slate-400">{tournament.description}</p>
         <div className="mt-9 flex flex-wrap gap-x-8 gap-y-4 text-sm">
-          <Stat label="赛期" value={`${tournament.startDate} — ${tournament.endDate}`} />
-          <Stat label="战队" value={`${tournament.teamCount} / ${tournament.maxTeams}`} />
+          <Stat label="赛期" value={formatDateRange(tournament.startAt, tournament.endAt)} />
+          <Stat label="报名类型" value={tournament.registrationType} />
+          {tournament.playerLimit ? <Stat label="选手上限" value={`${tournament.playerLimit} Players`} /> : null}
           <Stat label="默认赛制" value={`BO${tournament.defaultBestOf}`} />
         </div>
-        <Link href="/tournaments" className="mt-9 inline-flex items-center text-xs font-black uppercase tracking-[0.16em] text-[#d8b968]">
-          进入赛事中心 <span className="ml-3">→</span>
+        <Link href={`/tournaments/${tournament.slug}`} className="mt-9 inline-flex items-center text-xs font-black uppercase tracking-[0.16em] text-[#d8b968]">
+          查看赛事详情 <span className="ml-3">→</span>
         </Link>
       </div>
       {featured ? (

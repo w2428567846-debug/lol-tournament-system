@@ -3,88 +3,31 @@ import Link from 'next/link';
 import { PageIntro } from '@/components/layout/page-intro';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
-import { PlayerCard } from '@/components/player/player-card';
-import { players } from '@/lib/sample-data';
 
 export const metadata: Metadata = { title: '选手中心' };
 
-const roleCounts = [
-  ['上路', 32, 'bg-orange-300'],
-  ['打野', 29, 'bg-emerald-300'],
-  ['中路', 34, 'bg-violet-300'],
-  ['下路', 31, 'bg-cyan-300'],
-  ['辅助', 30, 'bg-[#d8b968]'],
+const roles = [
+  ['TOP', '上路', '承担边线压力与前排职责'],
+  ['JUNGLE', '打野', '控制地图资源并带动节奏'],
+  ['MID', '中路', '连接上下半区与核心输出'],
+  ['ADC', '下路', '提供持续物理伤害'],
+  ['SUPPORT', '辅助', '视野、开团与队伍保护'],
 ];
 
 export default function PlayersPage() {
   return (
     <main className="min-h-screen bg-[#080b10] text-white">
       <SiteHeader />
-      <PageIntro
-        eyebrow="Player hub"
-        title="选手中心"
-        description="查看参赛选手、位置、段位与赛事评分。完成数据库接入后，选手可创建个人档案并加入战队。"
-      />
-
+      <PageIntro eyebrow="Player hub" title="社区选手中心" description="创建自己的赛事档案，使用真实 Riot ID 与首选位置报名社区赛事。私人联系方式不会公开展示。" />
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            ['156', '注册选手'],
-            ['24', '自由选手'],
-            ['38', '活跃战队'],
-            ['9.8', '最高评分'],
-          ].map(([value, label]) => (
-            <div key={label} className="border border-white/9 bg-[#0d1219] px-6 py-5">
-              <p className="text-3xl font-black text-white">{value}</p>
-              <p className="mt-1 text-[10px] font-bold uppercase tracking-[.2em] text-slate-600">{label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-14 flex items-end justify-between gap-6 border-b border-white/8 pb-5">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Featured roster</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-.04em] text-white">高评分选手</h2>
-          </div>
-          <span className="text-xs font-semibold text-slate-600">演示数据</span>
-        </div>
-        <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {players.map((player, index) => <PlayerCard key={player.id} player={player} index={index} />)}
-        </div>
+        <div className="grid gap-4 md:grid-cols-3"><Feature code="01" title="一人一份档案" description="每个登录账户只能维护一个选手档案，避免重复身份。" /><Feature code="02" title="报名自动带入" description="赛事报名会自动使用已保存的 Riot ID、段位和位置。" /><Feature code="03" title="资料分级保护" description="公开页面只显示经过审核的必要信息，完整资料仅本人和管理员可见。" /></div>
+        <div className="mt-16 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Player roles</p><h2 className="mt-2 text-3xl font-black tracking-[-.04em]">位置说明</h2></div><p className="max-w-md text-sm leading-6 text-slate-500">报名时可选择一个首选位置和一个不同的第二位置。</p></div>
+        <div className="mt-8 grid gap-3 md:grid-cols-2 xl:grid-cols-5">{roles.map(([code, title, description]) => <article key={code} className="border border-white/9 bg-[#0d1219] p-5"><span className="text-[10px] font-black tracking-[.18em] text-[#d8b968]">{code}</span><h3 className="mt-4 text-lg font-black">{title}</h3><p className="mt-2 text-xs leading-5 text-slate-500">{description}</p></article>)}</div>
       </section>
-
-      <section className="border-y border-white/8 bg-[#0a0e14]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[.85fr_1.15fr] lg:px-10">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Role distribution</p>
-            <h2 className="mt-2 text-3xl font-black tracking-[-.04em] text-white">位置分布</h2>
-            <p className="mt-4 max-w-md text-sm leading-6 text-slate-500">快速查看报名池的阵容结构，方便主办方与战队发现当前最紧缺的位置。</p>
-          </div>
-          <div className="space-y-5">
-            {roleCounts.map(([label, count, tone]) => (
-              <div key={label} className="grid grid-cols-[52px_1fr_38px] items-center gap-4">
-                <span className="text-sm font-bold text-slate-300">{label}</span>
-                <span className="h-2 overflow-hidden bg-white/6"><span className={`block h-full ${tone}`} style={{ width: `${Number(count) / 34 * 100}%` }} /></span>
-                <span className="text-right text-sm font-black text-white">{count}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="register" className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-10">
-        <div className="relative overflow-hidden border border-[#d8b968]/25 bg-[linear-gradient(115deg,rgba(216,185,104,.16),rgba(13,18,25,.96)_44%,rgba(34,211,238,.08))] px-6 py-10 sm:px-10 lg:flex lg:items-center lg:justify-between">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Open registration</p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-.04em] text-white sm:text-4xl">准备好上场了吗？</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">选手注册功能将在登录与数据库阶段正式开放。目前可先浏览页面与报名流程骨架。</p>
-          </div>
-          <Link href="/teams" className="gold-button mt-7 inline-flex min-h-12 items-center justify-center px-7 text-sm font-black tracking-[.12em] text-[#080b10] lg:mt-0">
-            查看招募战队 →
-          </Link>
-        </div>
-      </section>
+      <section id="register" className="border-y border-white/8 bg-[#0a0e14]"><div className="mx-auto flex max-w-7xl flex-col gap-7 px-5 py-14 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-10"><div><p className="text-[10px] font-bold uppercase tracking-[.3em] text-[#d8b968]">Create your profile</p><h2 className="mt-3 text-3xl font-black tracking-[-.04em]">准备好报名了吗？</h2><p className="mt-3 text-sm text-slate-500">登录账户并完成选手档案，即可进入开放赛事的报名页面。</p></div><div className="flex flex-wrap gap-3"><Link href="/account" className="gold-button inline-flex min-h-12 items-center px-7 text-sm font-black text-[#080b10]">建立选手档案 →</Link><Link href="/tournaments" className="inline-flex min-h-12 items-center border border-white/12 px-7 text-sm font-bold text-slate-300">浏览赛事</Link></div></div></section>
       <SiteFooter />
     </main>
   );
 }
+
+function Feature({ code, title, description }: { code: string; title: string; description: string }) { return <article className="border border-white/9 bg-[#0d1219] p-6"><span className="text-[10px] font-black tracking-[.18em] text-[#d8b968]">{code}</span><h2 className="mt-5 text-xl font-black">{title}</h2><p className="mt-3 text-sm leading-6 text-slate-500">{description}</p></article>; }
