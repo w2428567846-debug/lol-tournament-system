@@ -10,6 +10,7 @@ import { SetupRequired } from '@/components/supabase/setup-required';
 import { getViewer } from '@/lib/auth/server';
 import { formatDateTime } from '@/lib/format';
 import { getAccountOverview } from '@/lib/registrations/queries';
+import { playerRoleLabels } from '@/lib/registrations/labels';
 
 export const metadata: Metadata = { title: '我的账户' };
 export const dynamic = 'force-dynamic';
@@ -56,8 +57,8 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
                   <div>
                     <div className="flex flex-wrap items-center gap-3"><Link href={`/tournaments/${registration.tournament.slug}`} className="text-lg font-black text-white hover:text-[#d8b968]">{registration.tournament.name}</Link><StatusBadge status={registration.status} /></div>
                     <p className="mt-3 text-sm text-slate-300">游戏 ID：<strong className="text-white">{registration.gameId}</strong></p>
-                    <p className="mt-1 text-sm text-slate-400">段位：{registration.rankSnapshot} · 位置：<strong className="text-slate-200">{registration.primaryRole}{registration.secondaryRole ? ` / ${registration.secondaryRole}` : ''}</strong></p>
-                    <p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt)}</p>
+                    <p className="mt-1 text-sm text-slate-400">段位：{registration.rankSnapshot} · 位置：<strong className="text-slate-200">{playerRoleLabels[registration.primaryRole]}{registration.secondaryRole ? ` / ${playerRoleLabels[registration.secondaryRole]}` : ''}</strong></p>
+                    <p className="mt-1 text-xs text-slate-600">提交：{formatDateTime(registration.createdAt, registration.tournament.timezone)}</p>
                   </div>
                   {registration.canSelfManage ? <div className="flex items-center gap-4"><Link href={`/tournaments/${registration.tournament.slug}/register`} className="text-xs font-bold text-[#d8b968]">修改报名</Link><CancelRegistrationButton registrationId={registration.id} /></div> : <span className="text-xs text-slate-600">报名已关闭或不可修改</span>}
                 </article>

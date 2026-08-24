@@ -38,6 +38,7 @@ export type Tournament = {
   status: TournamentStatus;
   visibility: 'PUBLIC' | 'UNLISTED' | 'PRIVATE';
   registrationType: 'SOLO' | 'TEAM' | 'BOTH';
+  timezone: string;
   registrationStartAt: string;
   registrationEndAt: string;
   playerLimit: number | null;
@@ -63,6 +64,7 @@ export type TournamentDetail = Tournament & {
   pendingCount: number;
   waitlistedCount: number;
   participants: TournamentParticipantPreview[];
+  participantsRestricted: boolean;
 };
 
 export type Standing = TeamSummary & {
@@ -141,7 +143,7 @@ export type TournamentRegistration = {
 };
 
 export type AccountRegistration = TournamentRegistration & {
-  tournament: Pick<Tournament, 'name' | 'slug' | 'startAt' | 'status' | 'registrationStartAt' | 'registrationEndAt'>;
+  tournament: Pick<Tournament, 'name' | 'slug' | 'startAt' | 'status' | 'timezone' | 'registrationStartAt' | 'registrationEndAt'>;
   canSelfManage: boolean;
 };
 

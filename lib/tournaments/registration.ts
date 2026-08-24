@@ -1,9 +1,6 @@
 import type { Tournament } from '@/types';
+import { isRegistrationWindowOpen } from '@/lib/tournaments/domain';
 
-export function isTournamentRegistrationOpen(tournament: Tournament) {
-  const now = Date.now();
-  return tournament.status === 'REGISTRATION'
-    && now >= new Date(tournament.registrationStartAt).getTime()
-    && now <= new Date(tournament.registrationEndAt).getTime()
-    && (tournament.registrationType === 'SOLO' || tournament.registrationType === 'BOTH');
+export function isTournamentRegistrationOpen(tournament: Tournament, now = Date.now()) {
+  return isRegistrationWindowOpen(tournament, now);
 }

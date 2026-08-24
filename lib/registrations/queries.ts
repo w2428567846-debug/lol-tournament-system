@@ -1,4 +1,5 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { canPlayerManageRegistration } from '@/lib/tournaments/domain';
 import type { AccountRegistration, PlayerProfile, TournamentRegistration } from '@/types';
 
 type RecordValue = Record<string, unknown>;
@@ -60,7 +61,7 @@ export async function getAccountOverview(accountId: string) {
     supabase.from('player_profiles').select('*').eq('account_id', accountId).maybeSingle(),
     supabase
       .from('tournament_registrations')
-      .select('*, tournaments!inner(name, slug, start_at, status, registration_start_at, registration_end_at)')
+      .select('*, tournaments!inner(name, slug, start_at, status, timezone, registration_start_at, registration_end_at)')
       .eq('account_id', accountId)
       .order('created_at', { ascending: false }),
   ]);
@@ -82,13 +83,16 @@ export async function getAccountOverview(accountId: string) {
         slug: String(tournament.slug),
         startAt: String(tournament.start_at),
         status: tournament.status as AccountRegistration['tournament']['status'],
+        timezone: String(tournament.timezone ?? 'Asia/Shanghai'),
         registrationStartAt,
         registrationEndAt,
       },
-      canSelfManage: tournament.status === 'REGISTRATION'
-        && now >= new Date(registrationStartAt).getTime()
-        && now <= new Date(registrationEndAt).getTime()
-        && ['PENDING', 'APPROVED', 'WAITLISTED'].includes(mapped.status),
+      canSelfManage: canPlayerManageRegistration({
+        tournamentStatus: tournament.status as AccountRegistration['tournament']['status'],
+        registrationStartAt,
+        registrationEndAt,
+        registrationStatus: mapped.status,
+      }, now),
     };
   });
 

@@ -11,6 +11,7 @@ export function mapTournament(row: TournamentRecord): Tournament {
     status: row.status as Tournament['status'],
     visibility: row.visibility as Tournament['visibility'],
     registrationType: row.registration_type as Tournament['registrationType'],
+    timezone: String(row.timezone ?? 'Asia/Shanghai'),
     registrationStartAt: String(row.registration_start_at),
     registrationEndAt: String(row.registration_end_at),
     playerLimit: row.player_limit == null ? null : Number(row.player_limit),
@@ -35,6 +36,7 @@ export function mapTournamentDetail(row: TournamentRecord): TournamentDetail {
     approvedCount: Number(row.approved_count ?? 0),
     pendingCount: Number(row.pending_count ?? 0),
     waitlistedCount: Number(row.waitlisted_count ?? 0),
+    participantsRestricted: Boolean(row.participants_restricted ?? false),
     participants: participants.map((participant) => {
       const item = participant as TournamentRecord;
       return {

@@ -7,6 +7,7 @@ import { TournamentRegistrationForm } from '@/components/registration/tournament
 import { SetupRequired } from '@/components/supabase/setup-required';
 import { getViewer } from '@/lib/auth/server';
 import { getAccountTournamentRegistration, getSavedProfile } from '@/lib/registrations/queries';
+import { registrationStatusLabels } from '@/lib/registrations/labels';
 import { getTournamentDetail } from '@/lib/tournaments/queries';
 import { isTournamentRegistrationOpen } from '@/lib/tournaments/registration';
 
@@ -41,7 +42,7 @@ export default async function TournamentRegisterPage({ params }: { params: Promi
           <p className="text-[10px] font-black uppercase tracking-[.28em] text-[#d8b968]">Solo registration</p>
           <h1 className="mt-3 text-3xl font-black tracking-[-.04em]">{editableRegistration ? '修改报名' : '报名'} {tournament.name}</h1>
           <p className="mt-3 text-sm leading-6 text-slate-500">直接填写本次赛事资料即可提交，不需要先建立选手档案。资料会保存为赛事快照。</p>
-          {!open ? <p className="mt-7 border border-amber-300/20 bg-amber-300/6 p-5 text-sm text-amber-100">报名已经关闭或名单已锁定，当前不能提交或修改。</p> : registration && !editableRegistration ? <p className="mt-7 border border-slate-300/15 bg-white/[.03] p-5 text-sm text-slate-300">你已有一份状态为 {registration.status} 的报名记录，不能重复提交。</p> : <TournamentRegistrationForm tournament={tournament} profile={profile} registration={editableRegistration} />}
+          {!open ? <p className="mt-7 border border-amber-300/20 bg-amber-300/6 p-5 text-sm text-amber-100">报名已经关闭或名单已锁定，当前不能提交或修改。</p> : registration && !editableRegistration ? <p className="mt-7 border border-slate-300/15 bg-white/[.03] p-5 text-sm text-slate-300">你已有一份状态为“{registrationStatusLabels[registration.status]}”的报名记录，不能重复提交。</p> : <TournamentRegistrationForm tournament={tournament} profile={profile} registration={editableRegistration} />}
         </div>
       </section>
       <SiteFooter />

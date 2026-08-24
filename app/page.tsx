@@ -2,24 +2,27 @@ import Link from 'next/link';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { TournamentCard } from '@/components/tournament/tournament-card';
+import { SetupRequired } from '@/components/supabase/setup-required';
 import { formatDateTime } from '@/lib/format';
 import { getFeaturedTournament } from '@/lib/tournaments/queries';
 import { tournamentStatusLabels } from '@/lib/tournaments/status';
 
 export default async function HomePage() {
-  const { tournament, isFallback } = await getFeaturedTournament();
+  const { tournament, isFallback, configurationMissing } = await getFeaturedTournament();
+  if (configurationMissing) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><SetupRequired /><SiteFooter /></main>;
+  if (!tournament) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><section className="mx-auto max-w-3xl px-5 py-20 sm:px-8"><p className="text-[10px] font-black uppercase tracking-[.26em] text-[#d8b968]">Tournament service</p><h1 className="mt-3 text-3xl font-black">暂时没有已发布赛事</h1><p className="mt-4 text-sm leading-6 text-slate-400">主办方创建并开放报名后，赛事会显示在这里。</p></section><SiteFooter /></main>;
   const registrationOpen = tournament.status === 'REGISTRATION';
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080b10] text-white">
       <SiteHeader />
 
-      <section className="relative isolate min-h-[700px] overflow-hidden border-b border-white/10">
+      <section className="relative isolate min-h-[580px] overflow-hidden border-b border-white/10 sm:min-h-[700px]">
         <div className="absolute inset-0 -z-30 bg-[url('/hero-arena.png')] bg-cover bg-center" role="img" aria-label="蓝金两方选手在大型电竞场馆对阵" />
         <div className="absolute inset-0 -z-20 bg-[linear-gradient(180deg,rgba(3,7,12,.38)_0%,rgba(3,7,12,.25)_44%,rgba(8,11,16,.96)_100%)]" />
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(3,7,12,.18)_55%,rgba(3,7,12,.58)_100%)]" />
 
-        <div className="mx-auto flex min-h-[700px] max-w-7xl flex-col justify-between px-5 pb-8 pt-24 sm:px-8 lg:px-10 lg:pt-28">
+        <div className="mx-auto flex min-h-[580px] max-w-7xl flex-col justify-between px-5 pb-6 pt-20 sm:min-h-[700px] sm:px-8 sm:pb-8 sm:pt-24 lg:px-10 lg:pt-28">
           <div className="mx-auto flex max-w-5xl flex-1 flex-col items-center justify-center pb-14 text-center">
             <div className="mb-7 flex items-center gap-4 text-[10px] font-bold uppercase tracking-[0.34em] text-[#e6ca7b] sm:text-xs"><span className="h-px w-8 bg-[#d8b968] sm:w-12" />Rift Command · Community Tournament<span className="h-px w-8 bg-[#d8b968] sm:w-12" /></div>
             <p className="mb-4 text-xs font-semibold uppercase tracking-[0.4em] text-cyan-200 sm:text-sm">{registrationOpen ? 'Registration now open' : 'Current tournament'}</p>
@@ -34,7 +37,7 @@ export default async function HomePage() {
           <div className="grid items-center gap-5 border border-white/12 bg-[#080b10]/78 px-5 py-4 shadow-2xl shadow-black/40 backdrop-blur-xl sm:grid-cols-[1.2fr_1fr_1fr] sm:px-7">
             <div><p className="text-[10px] font-bold uppercase tracking-[.24em] text-[#d8b968]">Registration</p><p className="mt-1 font-black text-white">{registrationOpen ? '报名通道开放' : tournamentStatusLabels[tournament.status]}</p></div>
             <div className="border-y border-white/10 py-3 sm:border-x sm:border-y-0 sm:px-8 sm:py-0"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">当前申请</p><p className="mt-1 text-sm font-bold text-slate-200"><span className="text-emerald-200">{tournament.approvedCount} 已通过</span> · {tournament.pendingCount} 待审核</p></div>
-            <div className="sm:text-right"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">报名截止</p><p className="mt-1 text-sm font-bold text-white">{formatDateTime(tournament.registrationEndAt)}</p></div>
+            <div className="sm:text-right"><p className="text-[10px] uppercase tracking-[.2em] text-slate-600">报名截止</p><p className="mt-1 text-sm font-bold text-white">{formatDateTime(tournament.registrationEndAt, tournament.timezone)}</p></div>
           </div>
         </div>
       </section>

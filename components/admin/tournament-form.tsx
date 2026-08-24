@@ -4,14 +4,8 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { RegistrationShareActions } from '@/components/tournament/registration-share-actions';
 import { tournamentStatusDescriptions, tournamentStatusLabels } from '@/lib/tournaments/status';
+import { DEFAULT_TOURNAMENT_TIMEZONE, toTournamentDateTimeLocal } from '@/lib/timezone';
 import type { Tournament } from '@/types';
-
-function dateTimeLocal(value?: string) {
-  if (!value) return '';
-  const date = new Date(value);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return local.toISOString().slice(0, 16);
-}
 
 export function TournamentForm({ tournament }: { tournament?: Tournament }) {
   const router = useRouter();
@@ -19,6 +13,8 @@ export function TournamentForm({ tournament }: { tournament?: Tournament }) {
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState('');
   const fieldClass = 'mt-2 w-full border border-white/12 bg-[#080b10] px-4 py-3 text-sm text-white outline-none transition focus:border-[#d8b968]/60';
+  const timezone = tournament?.timezone ?? DEFAULT_TOURNAMENT_TIMEZONE;
+  const legacyRegistrationType = tournament && tournament.registrationType !== 'SOLO' ? tournament.registrationType : null;
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,13 +66,14 @@ export function TournamentForm({ tournament }: { tournament?: Tournament }) {
         <label><span className="text-xs font-bold text-slate-300">链接标识</span><input className={fieldClass} name="slug" required pattern="[a-z0-9]+(?:-[a-z0-9]+)*" placeholder="community-cup-09" defaultValue={tournament?.slug ?? ''} /></label>
         <label className="sm:col-span-2"><span className="text-xs font-bold text-slate-300">赛事说明</span><textarea className={`${fieldClass} min-h-24 resize-y`} name="description" defaultValue={tournament?.description ?? ''} /></label>
         <label className="sm:col-span-2"><span className="text-xs font-bold text-slate-300">赛事规则</span><textarea className={`${fieldClass} min-h-36 resize-y`} name="rules" defaultValue={tournament?.rules ?? ''} /></label>
-        <label><span className="text-xs font-bold text-slate-300">报名开始</span><input className={fieldClass} type="datetime-local" name="registration_start_at" required defaultValue={dateTimeLocal(tournament?.registrationStartAt)} /></label>
-        <label><span className="text-xs font-bold text-slate-300">报名结束</span><input className={fieldClass} type="datetime-local" name="registration_end_at" required defaultValue={dateTimeLocal(tournament?.registrationEndAt)} /></label>
-        <label><span className="text-xs font-bold text-slate-300">赛事开始</span><input className={fieldClass} type="datetime-local" name="start_at" required defaultValue={dateTimeLocal(tournament?.startAt)} /></label>
-        <label><span className="text-xs font-bold text-slate-300">赛事结束</span><input className={fieldClass} type="datetime-local" name="end_at" required defaultValue={dateTimeLocal(tournament?.endAt)} /></label>
+        <label className="sm:col-span-2"><span className="text-xs font-bold text-slate-300">赛事时区</span><select className={fieldClass} name="timezone" defaultValue={timezone}><option value="Asia/Shanghai">中国标准时间（Asia/Shanghai · UTC+8）</option></select><span className="mt-2 block text-[11px] text-slate-600">下方时间按此时区输入并显示，不受管理员电脑或服务器时区影响。</span></label>
+        <label><span className="text-xs font-bold text-slate-300">报名开始（中国时间）</span><input className={fieldClass} type="datetime-local" name="registration_start_at" required defaultValue={toTournamentDateTimeLocal(tournament?.registrationStartAt ?? '', timezone)} /></label>
+        <label><span className="text-xs font-bold text-slate-300">报名结束（中国时间）</span><input className={fieldClass} type="datetime-local" name="registration_end_at" required defaultValue={toTournamentDateTimeLocal(tournament?.registrationEndAt ?? '', timezone)} /></label>
+        <label><span className="text-xs font-bold text-slate-300">赛事开始（中国时间）</span><input className={fieldClass} type="datetime-local" name="start_at" required defaultValue={toTournamentDateTimeLocal(tournament?.startAt ?? '', timezone)} /></label>
+        <label><span className="text-xs font-bold text-slate-300">赛事结束（中国时间）</span><input className={fieldClass} type="datetime-local" name="end_at" required defaultValue={toTournamentDateTimeLocal(tournament?.endAt ?? '', timezone)} /></label>
         <label><span className="text-xs font-bold text-slate-300">正式通过名额</span><input className={fieldClass} type="number" name="player_limit" min={1} placeholder="例如：40" defaultValue={tournament?.playerLimit ?? ''} /></label>
-        <label><span className="text-xs font-bold text-slate-300">队伍上限（选填）</span><input className={fieldClass} type="number" name="team_limit" min={1} defaultValue={tournament?.teamLimit ?? ''} /></label>
-        <label><span className="text-xs font-bold text-slate-300">报名类型</span><select className={fieldClass} name="registration_type" defaultValue={tournament?.registrationType ?? 'SOLO'}><option value="SOLO">个人报名</option><option value="TEAM">队伍报名</option><option value="BOTH">个人与队伍</option></select></label>
+        <input type="hidden" name="team_limit" value={tournament?.teamLimit ?? ''} />
+        <label><span className="text-xs font-bold text-slate-300">报名类型</span><input type="hidden" name="registration_type" value={tournament?.registrationType ?? 'SOLO'} /><span className={`${fieldClass} block text-slate-300`}>{legacyRegistrationType ? `${legacyRegistrationType}（历史赛事，仅保留编辑）` : '个人报名'}</span><span className="mt-2 block text-[11px] text-slate-600">队伍报名与混合报名将在后续阶段开放。</span></label>
         <label><span className="text-xs font-bold text-slate-300">可见性</span><select className={fieldClass} name="visibility" defaultValue={tournament?.visibility ?? 'PRIVATE'}><option value="PRIVATE">私人链接</option><option value="UNLISTED">不在列表显示</option><option value="PUBLIC">公开</option></select></label>
         <label><span className="text-xs font-bold text-slate-300">赛事结构</span><select className={fieldClass} name="format" defaultValue={tournament?.format ?? 'GROUP_KNOCKOUT'}><option value="GROUP">小组</option><option value="KNOCKOUT">淘汰</option><option value="GROUP_KNOCKOUT">小组 + 淘汰</option></select></label>
         <label><span className="text-xs font-bold text-slate-300">默认比赛局数</span><select className={fieldClass} name="default_best_of" defaultValue={tournament?.defaultBestOf ?? 3}><option value="1">BO1</option><option value="3">BO3</option><option value="5">BO5</option></select></label>

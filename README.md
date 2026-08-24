@@ -13,6 +13,10 @@
 - 每次报名保存游戏 ID、段位、位置与群昵称快照
 - 私人赛事邀请码在 PostgreSQL 服务端验证
 - 账户与游戏 ID 双重防重复、名单锁定与数据库审批容量限制
+- 赛事时间按显式 `Asia/Shanghai` 时区输入和显示，并以 UTC `timestamptz` 保存
+- 当前产品阶段从界面、接口与数据库限制为个人报名；历史 TEAM/BOTH 数据仍可读取
+- 私人赛事匿名详情只返回人数，不返回完整参与者游戏 ID
+- 生产环境缺少 Supabase 配置时显示明确的服务设置状态，不使用开发示例冒充真实数据
 - `/admin/tournaments/new`、`/admin/tournaments/[id]/edit` 赛事创建与生命周期操作
 - `/admin/registrations` 搜索、筛选、单笔与批量审核
 - 管理员服务端授权与 Supabase Row Level Security
@@ -35,9 +39,12 @@ pnpm install
 pnpm dev
 pnpm lint
 pnpm exec tsc --noEmit
+pnpm test:domain
 pnpm build
 ```
 
+GitHub Actions 会在提交到 `main` 及 Pull Request 时运行同一组安装、检查、领域测试和生产构建。
+
 ## 暂未实现
 
-队伍分配、自动赛程、积分计算、比赛结果、淘汰赛晋级、账号绑定、BP 与实时比赛数据均不在当前范围内。
+队伍报名、混合报名、队伍分配、自动赛程、积分计算、比赛结果、淘汰赛晋级、账号绑定、BP 与实时比赛数据均不在当前范围内。

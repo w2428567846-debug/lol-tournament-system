@@ -17,9 +17,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const admin = await requireAdmin();
   if ('error' in admin) return NextResponse.json({ message: admin.error === 'ADMIN_REQUIRED' ? '管理员权限不足。' : '请先登录。' }, { status: admin.error === 'ADMIN_REQUIRED' ? 403 : 401 });
   const body = await request.json() as Record<string, unknown>;
-  const parsed = parseTournamentInput(body, { requireInviteForPrivate: false });
-  if (!parsed.value) return NextResponse.json({ message: parsed.error }, { status: 400 });
   const { id } = await params;
+  const { data: existing, error: loadError } = await admin.supabase.from('tournaments').select('registration_type').eq('id', id).maybeSingle();
+  if (loadError || !existing) return NextResponse.json({ message: '赛事不存在或保存失败。' }, { status: 404 });
+  const parsed = parseTournamentInput(body, { requireInviteForPrivate: false, existingRegistrationType: existing.registration_type });
+  if (!parsed.value) return NextResponse.json({ message: parsed.error }, { status: 400 });
   const { data, error } = await admin.supabase.from('tournaments').update(parsed.value).eq('id', id).select('id, slug').maybeSingle();
   if (error || !data) {
     const message = error?.message.includes('tournaments_slug_key')

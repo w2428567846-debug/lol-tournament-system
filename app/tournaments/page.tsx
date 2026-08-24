@@ -3,12 +3,14 @@ import { PageIntro } from '@/components/layout/page-intro';
 import { SiteFooter } from '@/components/layout/site-footer';
 import { SiteHeader } from '@/components/layout/site-header';
 import { TournamentCard } from '@/components/tournament/tournament-card';
+import { SetupRequired } from '@/components/supabase/setup-required';
 import { listTournaments } from '@/lib/tournaments/queries';
 
 export const metadata: Metadata = { title: '赛事中心' };
 
 export default async function TournamentsPage() {
-  const { tournaments, isFallback } = await listTournaments();
+  const { tournaments, isFallback, configurationMissing } = await listTournaments();
+  if (configurationMissing) return <main className="min-h-screen bg-[#080b10] text-white"><SiteHeader /><SetupRequired /><SiteFooter /></main>;
   return (
     <main className="min-h-screen bg-[#080b10] text-white">
       <SiteHeader />
